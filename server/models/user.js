@@ -21,17 +21,15 @@ const userSchema = new mongoose.Schema(
       bio: { type: String, maxlength: 500 },
       major: { type: String, required: true },
       academicInterests: [String],
-      studyPreferences: {
-        timePreference: {
-          type: String,
-          enum: ["morning", "afternoon", "evening", "flexible"],
-        },
-        locationPreference: {
-          type: String,
-          enum: ["on-campus", "off-campus", "online", "flexible"],
-        },
-        groupSizePreference: { type: Number, min: 2, max: 10 },
+      timePreference: {
+        type: String,
+        enum: ["morning", "afternoon", "evening", "flexible"],
       },
+      locationPreference: {
+        type: String,
+        enum: ["on-campus", "off-campus", "online", "flexible"],
+      },
+      groupSizePreference: { type: Number, min: 2, max: 10 },
       skillLevels: [
         {
           subject: { type: String },
