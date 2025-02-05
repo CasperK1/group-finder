@@ -44,6 +44,7 @@ const getUserById = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Server error. Please try again.",
+      error: error.message,
     });
   }
 };
@@ -165,5 +166,21 @@ const updateUser = async (req, res) => {
 };
 
 // DELETE /api/users/:userId
-const deleteUser = async (req, res) => {};
-module.exports = { getAllUsers, getUserById, createUser, updateUser };
+const deleteUser = async (req, res) => {
+  // Validate id before any database calls
+  if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+    return res.status(400).json({
+      message: "Bad Request - Invalid user ID",
+    });
+  }
+  try {
+    const result = await User.findByIdAndDelete(req.params.userId );
+    if (!result) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: `User '${result.profile.firstName} ${result.profile.lastName}' deleted successfully` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports = { getAllUsers, getUserById, createUser, updateUser, deleteUser };
