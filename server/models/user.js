@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    admin: { type: Boolean, default: false },
     email: {
       type: String,
       required: true,
@@ -40,6 +41,12 @@ const userSchema = new mongoose.Schema(
         },
       ],
     },
+    groupsJoined: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Group",
+      },
+    ],
     settings: {
       profileVisibility: {
         type: String,

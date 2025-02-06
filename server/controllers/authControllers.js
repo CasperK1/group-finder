@@ -89,12 +89,19 @@ const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password" });
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+
+    // Log in expires automatically in 1 hour
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
     delete user.password;
     return res.status(200).json({
       message: "Login successful",
       token: token,
-      user: user,
+      userId: user.id,
+      email: user.email,
+      firstName: user.profile.firstName,
+      lastName: user.profile.lastName,
     });
   } catch (error) {
     res.status(500).json({
@@ -103,4 +110,5 @@ const loginUser = async (req, res) => {
     });
   }
 };
+
 module.exports = { registerUser, loginUser };

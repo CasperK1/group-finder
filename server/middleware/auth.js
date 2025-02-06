@@ -4,11 +4,14 @@ const verifyToken = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    if (!token) return res.status(401).json({ message: "Unauthorized" });
 
     const verified = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (req.params.userId && verified.id !== req.params.userId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     req.user = verified;
     next();
   } catch (error) {
