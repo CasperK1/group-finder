@@ -49,71 +49,6 @@ const getUserById = async (req, res) => {
   }
 };
 
-// POST /api/users
-const createUser = async (req, res) => {
-  try {
-    const {
-      email,
-      password,
-      firstName,
-      lastName,
-      major,
-      academicInterests,
-      timePreference,
-      locationPreference,
-      groupSizePreference,
-      bio,
-    } = req.body;
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
-    const user = new User({
-      email,
-      password: hashedPassword,
-      profile: {
-        firstName,
-        lastName,
-        major,
-        academicInterests,
-        bio,
-        timePreference: timePreference || "flexible",
-        locationPreference: locationPreference || "flexible",
-        groupSizePreference: groupSizePreference || 5,
-      },
-    });
-
-    // Save to database
-    await user.save();
-
-    // Return success without sending back password
-    const userWithoutPassword = user.toObject();
-    delete userWithoutPassword.password;
-
-    res.status(201).json({
-      success: true,
-      data: userWithoutPassword,
-      message: "User created successfully",
-    });
-  } catch (error) {
-    // Validation error =  missing required fields etc.
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
-    }
-    res.status(500).json({
-      error: "Server error. Please try again.",
-      message: error.message,
-    });
-  }
-};
-
 // PUT /api/users/:userId
 const updateUser = async (req, res) => {
   const updates = req.body;
@@ -174,13 +109,20 @@ const deleteUser = async (req, res) => {
     });
   }
   try {
-    const result = await User.findByIdAndDelete(req.params.userId );
+    const result = await User.findByIdAndDelete(req.params.userId);
     if (!result) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json({ message: `User '${result.profile.firstName} ${result.profile.lastName}' deleted successfully` });
+    res.status(200).json({
+      message: `User '${result.profile.firstName} ${result.profile.lastName}' deleted successfully`,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-module.exports = { getAllUsers, getUserById, createUser, updateUser, deleteUser };
+module.exports = {
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+};

@@ -1,14 +1,17 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const helmet = require("helmet");
 const morgan = require("morgan");
 const app = express();
 const config = require("./config.js");
 const port = process.env.PORT || config.port;
-const userRouter = require("./routes/userRoute");
+const userRouter = require("./routes/userRouter");
+const authRouter = require("./routes/authRouter");
 
 // Middleware
 app.use(express.json());
 app.use(morgan("tiny"));
+app.use(helmet());
 
 const connectDb = async () => {
   try {
@@ -24,6 +27,7 @@ const startServer = async () => {
   try {
     await connectDb();
     app.use("/api/users", userRouter);
+    app.use("/api/auth", authRouter);
     app.listen(port, () => {
       console.log(`Server running at http://localhost:${port}`);
     });
