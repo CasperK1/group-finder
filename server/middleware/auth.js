@@ -4,12 +4,18 @@ const verifyToken = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "Unauthorized" });
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const verified = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (req.params.userId && verified.id !== req.params.userId) {
-      return res.status(403).json({ message: "Access denied" });
+    // Check if user exists and is verified
+    const user = await User.findById(verified.id);
+    if (!user || !user.isVerified) {
+      return res.status(401).json({
+        message: user ? "Please verify your email first" : "User not found"
+      });
     }
 
     req.user = verified;
@@ -25,4 +31,5 @@ const verifyToken = async (req, res, next) => {
     return res.status(500).json({ message: "Authentication failed" });
   }
 };
+
 module.exports = verifyToken;

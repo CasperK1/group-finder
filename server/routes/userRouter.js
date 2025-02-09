@@ -18,7 +18,7 @@ router.get("/", getAllUsers);
 router.get("/profile/:userId", getUserProfile);
 
 // Protected routes (need JWT token)
-router.get("/profile", auth, getUserProfile);
+router.get("/profile/", auth, getUserProfile);
 router.get("/groups/joined", auth, getJoinedGroups);
 router.put("/settings", auth, updateUser);
 router.post("/groups/:groupId/join", auth, joinGroup);

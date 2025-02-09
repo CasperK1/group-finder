@@ -25,6 +25,15 @@ const getAllUsers = async (req, res) => {
 
 // GET /api/users/profile (private profile view) or /api/users/profile/:userId (public profile view)
 const getUserProfile = async (req, res) => {
+  // Validate format when ID comes from URL parameter
+  if (
+    req.params.userId &&
+    !mongoose.Types.ObjectId.isValid(req.params.userId)
+  ) {
+    return res.status(400).json({
+      message: "Invalid user ID format",
+    });
+  }
   try {
     const userId = req.params.userId || req.user?.id;
 
