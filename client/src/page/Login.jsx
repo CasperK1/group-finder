@@ -5,7 +5,6 @@ import SocialButtons from '../components/Login/SocialButtons';
 import Form from '../components/Login/Form';
 import TermsAndConditions from '../components/Login/TermsAndConditions';
 
-
 const Login = () => {
   return (
     <>

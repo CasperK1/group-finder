@@ -2,13 +2,20 @@ import React from 'react';
 import InputField from './InputField';
 import PasswordField from './PasswordField';
 import { Controller, useForm } from 'react-hook-form';
+import apiService from '../../services/api/apiService';
 
 function Form() {
   const { control, handleSubmit, formState: { errors } } = useForm();
 
   const onSubmit = (data) => {
     console.log("Form Submitted:", data);
-    //Todo sentry, hanlde call API
+    const response = apiService.handleSiggIn(data)
+    if(response === null){
+      console.error("Error: Invalid response or token missing.");
+    } else {
+      localStorage.setItem("SavedToken",response.data.token);
+      console.log("Token saved successfully.");
+    }
   };
 
   return (
