@@ -2,7 +2,7 @@ import React from 'react';
 import InputField from './InputField';
 import PasswordField from './PasswordField';
 import { Controller, useForm } from 'react-hook-form';
-import apiService from '../../services/api/apiService';
+import {apiService} from '../../services/api/apiService';
 
 function Form() {
   const { control, handleSubmit, formState: { errors } } = useForm();
@@ -37,7 +37,7 @@ function Form() {
               {...field}
               type="text"
               label="Email address or user name"
-              placeholder="Enter your email or username"
+              placeholder="Enter your email"
             />
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email.message}</p>
