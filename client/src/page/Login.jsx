@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Logo from '../components/Login/Logo';
 
 import SocialButtons from '../components/Login/SocialButtons';
 import Form from '../components/Login/Form';
 import TermsAndConditions from '../components/Login/TermsAndConditions';
+
 
 const Login = () => {
   return (
@@ -15,8 +16,10 @@ const Login = () => {
         <div className="flex items-center justify-between mb-6">
         </div>
         <h2 className="text-2xl font-bold mb-6">Log in</h2>
+
         <Form />
-        <TermsAndConditions />
+        
+        <TermsAndConditions/>
 
         <div className="text-center mt-6">
           <a href="/reset" className="text-blue-600">
@@ -26,7 +29,6 @@ const Login = () => {
         <div className="text-center mt-2">
           <span className="text-gray-600">
             Don't have an account?
-
           </span>
           <a href="/signup" className="text-blue-600">
               Sign up
