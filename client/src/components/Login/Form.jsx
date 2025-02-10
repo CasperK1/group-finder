@@ -15,6 +15,7 @@ function Form() {
     } else {
       localStorage.setItem("SavedToken",response.data.token);
       console.log("Token saved successfully.");
+      navigator("/")
     }
   };
 
