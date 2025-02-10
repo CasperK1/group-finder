@@ -9,6 +9,15 @@ const verifyToken = async (req, res, next) => {
     }
 
     const verified = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Check if user exists and is verified
+    const user = await User.findById(verified.id);
+    if (!user || !user.isVerified) {
+      return res.status(401).json({
+        message: user ? "Please verify your email first" : "User not found"
+      });
+    }
+
     req.user = verified;
     next();
   } catch (error) {
@@ -22,4 +31,5 @@ const verifyToken = async (req, res, next) => {
     return res.status(500).json({ message: "Authentication failed" });
   }
 };
+
 module.exports = verifyToken;

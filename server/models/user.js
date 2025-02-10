@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    admin: {type: Boolean, default: false},
     email: {
       type: String,
       required: true,
@@ -15,11 +16,11 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
     },
     profile: {
-      firstName: { type: String, required: true },
-      lastName: { type: String, required: true },
-      photo: { type: String, default: null },
-      bio: { type: String, maxlength: 500 },
-      major: { type: String, required: true },
+      firstName: {type: String, required: true},
+      lastName: {type: String, required: true},
+      photo: {type: String, default: null},
+      bio: {type: String, maxlength: 500},
+      major: {type: String, required: true},
       academicInterests: [String],
       timePreference: {
         type: String,
@@ -29,10 +30,10 @@ const userSchema = new mongoose.Schema(
         type: String,
         enum: ["on-campus", "off-campus", "online", "flexible"],
       },
-      groupSizePreference: { type: Number, min: 2, max: 10 },
+      groupSizePreference: {type: Number, min: 2, max: 10},
       skillLevels: [
         {
-          subject: { type: String },
+          subject: {type: String},
           level: {
             type: String,
             enum: ["beginner", "intermediate", "advanced"],
@@ -40,18 +41,26 @@ const userSchema = new mongoose.Schema(
         },
       ],
     },
+    groupsJoined: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Group",
+      },
+    ],
     settings: {
       profileVisibility: {
         type: String,
         enum: ["public", "private"],
         default: "public",
       },
-      emailNotifications: { type: Boolean, default: false },
+      emailNotifications: {type: Boolean, default: false},
     },
-    isVerified: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now },
+    isVerified: {type: Boolean, default: false},
+    verificationToken: {type: String},
+    verificationTokenExpires: {type: Date},
+    createdAt: {type: Date, default: Date.now},
   },
-  { timestamps: true },
+  {timestamps: true},
 );
 
 module.exports = mongoose.model("User", userSchema);
