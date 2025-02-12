@@ -5,13 +5,16 @@ const config = {
   port: process.env.PORT,
   mongoUri: process.env.MONGODB_URI,
   jwtSecret: process.env.JWT_SECRET,
-  mailOptions: {
-    from: process.env.EMAIL_USER,
-    to: undefined,
-    subject: 'Test Email from Node.js',
-    text: ''
-  }
   // ... other configurations
 };
 
-module.exports = config;
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.CORS_ORIGIN
+    : ['http://localhost:3000', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+
+module.exports = {config, corsOptions};

@@ -2,20 +2,15 @@ const app = express();
 const cors = require("cors");
 const morgan = require("morgan");
 const helmet = require("helmet");
-const express = require("express");
+const express = require("express")
+const cors = require("cors");
 const mongoose = require("mongoose");
-const config = require("./config.js");
+const {config, corsOptions} = require("./config.js");
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 
 const FRONTEND_URL = "http://localhost:5173"
 const port = process.env.PORT || config.port;
-
-const corsOptions = {
-  origin: FRONTEND_URL,
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true,
-};
 
 // Middleware
 app.use(express.json());
