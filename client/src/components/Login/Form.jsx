@@ -1,21 +1,28 @@
 import React from 'react';
 import InputField from './InputField';
 import PasswordField from './PasswordField';
+import { useNavigate } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
-import {apiService} from '../../services/api/apiService';
+import { apiService } from '../../services/api/apiService';
 
 function Form() {
-  const { control, handleSubmit, formState: { errors } } = useForm();
+  const navigate = useNavigate();
 
-  const onSubmit = (data) => {
-    console.log("Form Submitted:", data);
-    const response = apiService.handleSiggIn(data)
-    if(response === null){
-      console.error("Error: Invalid response or token missing.");
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = async (data) => {
+    const response = await apiService.handleLogin(data);
+    if (!response) {
+      console.error('Error: Invalid response or token missing.');
     } else {
-      localStorage.setItem("SavedToken",response.data.token);
-      console.log("Token saved successfully.");
-      navigator("/")
+      localStorage.setItem('SavedToken', response.token);
+      console.log('Token saved successfully.');
+
+      navigate('/');
     }
   };
 
@@ -33,15 +40,8 @@ function Form() {
         }}
         render={({ field }) => (
           <div>
-            <InputField
-              {...field}
-              type="text"
-              label="Email address or user name"
-              placeholder="Enter your email"
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm">{errors.email.message}</p>
-            )}
+            <InputField {...field} type="text" label="Email address or user name" placeholder="Enter your email" />
+            {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
           </div>
         )}
       />
@@ -63,12 +63,8 @@ function Form() {
         }}
         render={({ field }) => (
           <div>
-            <PasswordField
-              {...field}
-            />
-            {errors.password && (
-              <p className="text-red-500 text-sm">{errors.password.message}</p>
-            )}
+            <PasswordField {...field} />
+            {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
           </div>
         )}
       />
