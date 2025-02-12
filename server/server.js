@@ -1,17 +1,27 @@
+const app = express();
+const cors = require("cors");
+const morgan = require("morgan");
+const helmet = require("helmet");
 const express = require("express");
 const mongoose = require("mongoose");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const app = express();
 const config = require("./config.js");
-const port = process.env.PORT || config.port;
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
+
+const FRONTEND_URL = "http://localhost:5173"
+const port = process.env.PORT || config.port;
+
+const corsOptions = {
+  origin: FRONTEND_URL,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true,
+};
 
 // Middleware
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(helmet());
+app.use(cors(corsOptions));
 
 const connectDb = async () => {
   try {

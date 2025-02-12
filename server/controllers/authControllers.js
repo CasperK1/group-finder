@@ -19,16 +19,16 @@ const registerUser = async (req, res) => {
     const {
       email,
       password,
-      firstName,
-      lastName,
-      major,
-      academicInterests,
-      timePreference,
-      locationPreference,
-      groupSizePreference,
-      bio,
+        firstName,
+        lastName,
+        major,
+        academicInterests,
+        timePreference,
+        locationPreference,
+        groupSizePreference,
+        bio,
     } = req.body;
-
+    
     const existingUser = await User.findOne({email});
     if (existingUser) {
       return res.status(400).json({message: "Email already exists"});
@@ -40,7 +40,7 @@ const registerUser = async (req, res) => {
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
+    
     // Create new user
     const user = new User({
       email,
@@ -87,7 +87,7 @@ const registerUser = async (req, res) => {
 const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
-
+    
     const user = await User.findOne({
       verificationToken: token,
       verificationTokenExpires: { $gt: Date.now() }
