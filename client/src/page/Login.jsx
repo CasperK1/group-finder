@@ -1,25 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Logo from '../components/Logo';
-
-import SocialButtons from '../components/Login/SocialButtons';
 import Form from '../components/Login/Form';
+import SocialButtons from '../components/Login/SocialButtons';
 import TermsAndConditions from '../components/Login/TermsAndConditions';
 
 const Login = () => {
   return (
     <>
     <Logo />
-
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white w-full max-w-md p-8 rounded-lg shadow-md ">
-        <div className="flex items-center justify-between mb-6">
-        </div>
         <h2 className="text-2xl font-bold mb-6">Log in</h2>
-
         <Form />
-        
         <TermsAndConditions/>
-
         <div className="text-center mt-6">
           <a href="/reset" className="text-blue-600">
             Forgot your password?
