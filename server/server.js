@@ -8,6 +8,7 @@ const {config, corsOptions} = require("./config.js");
 const port = process.env.PORT || config.port;
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
+const groupRouter = require("./routes/groupRouter");
 
 // Middleware
 app.use(express.json());
@@ -30,6 +31,7 @@ const startServer = async () => {
     await connectDb();
     app.use("/api/users", userRouter);
     app.use("/api/auth", authRouter);
+    app.use("/api/groups", groupRouter);
     app.listen(port, () => {
       console.log(`Server running at http://localhost:${port}`);
     });

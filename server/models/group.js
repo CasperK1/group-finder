@@ -19,7 +19,7 @@ const groupSchema = new mongoose.Schema(
                 type: String,
                 enum: ["on-campus", "off-campus", "online", "flexible"],
             },
-            groupSize: { type: Number, min: 2, max: 10 },
+            groupSize: { type: Number, required: true, min: 2, max: 10 },
             skillLevels: [
                 {
                     subject: { type: String },
