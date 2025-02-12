@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const groupSchema = new mongoose.Schema(
     {
         owner: { type: String, required: true },
+        members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        moderators: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
         information: {
             name: { type: String, required: true },
             // Photo could be chosen from a list of preset group icons?
@@ -25,8 +27,11 @@ const groupSchema = new mongoose.Schema(
                 },
             ],
         },
-        // List of all the members of the group
-        members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        // Chat history, documents and events are only shown to members
+        // Not sure if this is the proper way to implement them, these are mainly placeholders
+        chatHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: "ChatHistory" }],
+        documents: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],
+        events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event"}],
         settings: {
             // Toggle whether users can join the group freely or they need an invite
             inviteOnly: { type: Boolean, default: false },
