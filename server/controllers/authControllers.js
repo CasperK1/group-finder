@@ -84,6 +84,7 @@ const registerUser = async (req, res) => {
   }
 };
 
+// GET /login/users/verify-email?token=(User.verificationToken) NOTE: This is not the JWT token
 const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;

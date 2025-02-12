@@ -1,9 +1,10 @@
-const express = require("express");
+const express = require("express")
+const cors = require("cors");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const app = express();
-const config = require("./config.js");
+const {config, corsOptions} = require("./config.js");
 const port = process.env.PORT || config.port;
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
@@ -12,6 +13,7 @@ const authRouter = require("./routes/authRouter");
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(helmet());
+app.use(cors(corsOptions));
 
 const connectDb = async () => {
   try {
