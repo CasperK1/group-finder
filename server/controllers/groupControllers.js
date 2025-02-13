@@ -1,6 +1,5 @@
 const Group = require("../models/Group");
 const mongoose = require("mongoose");
-const { listenerCount } = require("../models/User");
 
 /* Example form:
 {
@@ -154,8 +153,8 @@ const deleteGroup = async (req, res) => {
 };
 
 // TODO:
-// Implement GET functions that filter groups by city, skill levels etc. here?
-// GET function for retrieving group members?
+// When searching for groups, implement way to filter by city/time preference/skill levels/etc?
+// When viewing group information, check if the given user ID matches the group owner's ID
 
 module.exports = {
     getAllGroups,
