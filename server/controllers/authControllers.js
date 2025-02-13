@@ -2,16 +2,21 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
-const { sendVerificationEmail } = require('../services/emailAuth');
+const {sendVerificationEmail} = require('../services/emailAuth');
 // For testing. Required fields are email, password, firstName, lastName, major. Rest are optional.
 // {
-// email: "test@example.com",
-// password: "password123",
-// profile: {
-//   firstName: "Test",
-//   lastName: "User",
-//   major: "Computer Science",
-// }}
+//   "email": "mail@gmail.com",
+//   "password": "securepass1",
+//   "firstName": "John",
+//   "lastName": "Johnston",
+//   "major": "Relaxing",
+//   "academicInterests": ["coding"],
+//   "bio": "",
+//   "timePreference": "morning",
+//   "locationPreference": "on-campus",
+//   "groupSizePreference": 4
+//
+// }
 
 // POST /login/users
 const registerUser = async (req, res) => {
@@ -87,11 +92,11 @@ const registerUser = async (req, res) => {
 // GET /login/users/verify-email?token=(User.verificationToken) NOTE: This is not the JWT token
 const verifyEmail = async (req, res) => {
   try {
-    const { token } = req.query;
+    const {token} = req.query;
 
     const user = await User.findOne({
       verificationToken: token,
-      verificationTokenExpires: { $gt: Date.now() }
+      verificationTokenExpires: {$gt: Date.now()}
     });
 
     if (!user) {
@@ -155,4 +160,4 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = {registerUser, verifyEmail , loginUser};
+module.exports = {registerUser, verifyEmail, loginUser};
