@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
-import YourGroupsPage from "./YourGroups";
+import YourGroupsPage from "./page/YourGroups";
 import AboutPage from "./About";
 import SettingsPage from "./Settings";
 import Navbar from "./components/Navbar"; 
@@ -38,7 +38,7 @@ function Layout() {
   );
 }
 
-function App() {
+function App2() {
   return (
     <Router>
       <Layout />
