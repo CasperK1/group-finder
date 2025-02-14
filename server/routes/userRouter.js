@@ -11,7 +11,6 @@ const {
   deleteUser,
 } = require("../controllers/userControllers");
 
-// TODO: leave group and upload user photo controllers
 // http://localhost:3000/api/users
 // Public routes (no auth needed)
 router.get("/", getAllUsers);
