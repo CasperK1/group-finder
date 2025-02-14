@@ -10,7 +10,7 @@ import "./index.css";
 
 function Layout() {
   const location = useLocation();
-  const isGroupsPage = location.pathname === "/"; // Sidebar only on "/"
+  const isGroupsPage = location.pathname === "/";   // Sidebar only on "/"
 
   return (
     <div className="app-container">

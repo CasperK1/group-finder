@@ -30,15 +30,15 @@ body, html {
   color: black;
   font-weight: bold;
   transition: color 0.3s ease-in-out;
-  display: inline-block; /* Ensures underline works */
-  padding-bottom: 5px; /* Adds spacing for underline */
+  display: inline-block; 
+  padding-bottom: 5px; 
 }
 
 .nav-link::after {
   content: "";
   position: absolute;
   left: 0;
-  bottom: 0; /* Adjusted position */
+  bottom: 0;
   width: 100%;
   height: 2px;
   background-color: blue;
@@ -85,7 +85,6 @@ body, html {
   padding: 20px;
 }
 
-/* Sidebar */
 /* Sidebar */
 .sidebar {
   display: flex;
@@ -192,7 +191,7 @@ body, html {
   justify-content: center;
 }
 
-/* Group Cards with Max 3 Side-by-Side */
+/* Cards with Max 3 Side-by-Side */
 .card {
   background: white;
   padding: 15px;
@@ -219,8 +218,8 @@ body, html {
 
 /* Your Groups - Card Styling */
 .your-groups-container .groups-container {
-  justify-content: center; /* Align to left */
-  gap: 20px; /* Less spacing */
+  justify-content: center; 
+  gap: 20px;
   
 }
 
@@ -232,6 +231,6 @@ body, html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: calc(30%); /* Max 3 cards per row */
+  width: calc(30%);
 }
 
