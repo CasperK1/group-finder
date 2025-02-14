@@ -35,10 +35,6 @@ function Layout() {
 
 // Define Routes
 const router = createBrowserRouter([
-  // {
-  //   path: '/',
-  //   element: <Onboard />,
-  // },
   {
     path: '/',
     element: <Layout />, 
