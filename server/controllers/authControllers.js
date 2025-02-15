@@ -3,26 +3,29 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
 const {sendVerificationEmail} = require('../services/emailAuth');
-// For testing. Required fields are email, password, firstName, lastName, major. Rest are optional.
-// {
-//   "email": "mail@gmail.com",
-//   "password": "securepass1",
-//   "firstName": "John",
-//   "lastName": "Johnston",
-//   "major": "Relaxing",
-//   "academicInterests": ["coding"],
-//   "bio": "",
-//   "timePreference": "morning",
-//   "locationPreference": "on-campus",
-//   "groupSizePreference": 4
-//
-// }
+// For testing. Required fields are email, username, password, firstName, lastName, major. Rest are optional.
+/*
+{
+  "email": "mail@gmail.com",
+  "username": "bob1",
+  "password": "securepass1",
+  "firstName": "John",
+  "lastName": "Johnston",
+  "major": "Relaxing",
+  "academicInterests": ["coding"],
+  "bio": "",
+  "timePreference": "morning",
+  "locationPreference": "on-campus",
+  "groupSizePreference": 4
+}
+*/
 
 // POST /login/users
 const registerUser = async (req, res) => {
   try {
     const {
       email,
+      username,
       password,
       firstName,
       lastName,
@@ -49,6 +52,7 @@ const registerUser = async (req, res) => {
     // Create new user
     const user = new User({
       email,
+      username,
       password: hashedPassword,
       verificationToken,
       verificationTokenExpires,

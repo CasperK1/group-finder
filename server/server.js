@@ -10,6 +10,7 @@ const { authLimiter, apiLimiter } = require('./middleware/rateLimiter');
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const groupRouter = require("./routes/groupRouter");
+const fileRouter = require("./routes/fileRouter");
 
 // Basic middleware
 app.use(express.json());
@@ -25,6 +26,7 @@ app.use('/api', apiLimiter);
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/groups", groupRouter);
+app.use("/api/files", fileRouter);
 
 app.use((req, res, next) => {
   const error = new Error('Not Found');
