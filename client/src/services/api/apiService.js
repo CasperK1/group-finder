@@ -1,3 +1,4 @@
-import { handleLogin, handleRegister } from '../../utils/auth';
+import { handleLogin, handleRegister } from '../authService';
+import { getGroupInformationData } from '../groupService';
 
-export const apiService = { handleLogin, handleRegister };
+export const apiService = { handleLogin, handleRegister, getGroupInformationData };

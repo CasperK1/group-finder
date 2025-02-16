@@ -10,6 +10,7 @@ import AboutPage from './page/About';
 import SettingsPage from './page/Settings';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import GroupInformation from './components/Group/GroupInformation';
 
 // Layout Component for pages with Sidebar & Navbar
 function Layout() {
@@ -59,6 +60,10 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <SettingsPage />,
+      },
+      {
+        path: 'group-information',
+        element: <GroupInformation />,
       },
     ],
   },
