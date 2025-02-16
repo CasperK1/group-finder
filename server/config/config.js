@@ -1,13 +1,5 @@
 require("dotenv").config();
 
-const config = {
-  env: process.env.NODE_ENV,
-  port: process.env.PORT,
-  mongoUri: process.env.MONGODB_URI,
-  jwtSecret: process.env.JWT_SECRET,
-  // ... other configurations
-};
-
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? process.env.CORS_ORIGIN
@@ -17,4 +9,4 @@ const corsOptions = {
   credentials: true,
 };
 
-module.exports = {config, corsOptions};
+module.exports = {corsOptions};
