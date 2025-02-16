@@ -19,7 +19,7 @@ function Form() {
     if (!response) {
       console.error('Error: Invalid response or token missing.');
     } else {
-      localStorage.setItem('SavedToken', response.token);
+      localStorage.setItem('jwtToken', response.token);
       console.log('Token saved successfully.');
 
       navigate('/');
