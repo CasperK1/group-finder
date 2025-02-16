@@ -41,6 +41,11 @@ const registerUser = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({message: "Email already exists"});
     }
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
     // Generate verification token for email
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours

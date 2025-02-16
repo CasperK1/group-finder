@@ -73,7 +73,9 @@ const createGroup = async (req, res) => {
           } = req.body;
 
         const group = new Group({
-            owner,
+            owner: req.user.id,
+            members: [req.user.id],
+            moderators: [req.user.id],
             information: {
                 name,
                 photo,
@@ -83,7 +85,10 @@ const createGroup = async (req, res) => {
                 location,
                 groupSize,
                 skillLevels
-            }
+            },
+            chatHistory: [],
+            documents: [],
+            events: []
         });
         const newGroup = await group.save();
 

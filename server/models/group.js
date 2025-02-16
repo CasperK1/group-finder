@@ -41,7 +41,7 @@ const groupSchema = new mongoose.Schema(
         ref: 'User',
         required: true
       },
-      username: {type: String, required: true},
+      username: {type: String},
       description: {type: String},
       tags: [String],
       downloads: {type: Number, default: 0},

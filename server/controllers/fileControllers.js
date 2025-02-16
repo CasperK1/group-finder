@@ -67,12 +67,12 @@ const uploadGroupFile = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({message: 'No file uploaded'});
     }
+    [user, group] = await Promise.all([User.findById(req.user.id), Group.findById(req.params.groupId)]);
 
-    const {groupId} = req.params;
-    const group = await Group.findById(groupId);
-
-    if (!group) {
-      return res.status(404).json({message: 'Group not found'});
+    if (!user || !group) {
+      return res.status(404).json({
+        message: user ? "Group not found" : "User not found",
+      });
     }
     if (!group.members.includes(req.user.id)) {
       return res.status(403).json({message: 'Must be a group member to upload files'});
@@ -80,7 +80,6 @@ const uploadGroupFile = async (req, res) => {
 
     // Get file extension from original filename
     const fileType = req.file.originalname.split('.').pop().toLowerCase();
-
     // Create new document object
     const newDocument = {
       key: req.file.key,
@@ -88,7 +87,7 @@ const uploadGroupFile = async (req, res) => {
       fileType,
       size: req.file.size,
       uploadedBy: req.user.id,
-      username: req.user.username,
+      username:user.username,
       description: req.body.description || '',
       tags: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
       lastModified: new Date()
