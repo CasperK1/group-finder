@@ -141,100 +141,10 @@ const getJoinedGroups = async (req, res) => {
   }
 };
 
-// POST /api/groups/:groupId/join
-const joinGroup = async (req, res) => {
-  // Validate id before any database calls
-  if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
-    return res.status(400).json({
-      message: "Bad Request - Invalid group ID",
-    });
-  }
-  try {
-    const userId = req.user.id;
-    const groupId = req.params.groupId;
-    const [user, group] = await Promise.all([
-      User.findById(userId),
-      Group.findById(groupId)]);
-
-    if (!user || !group) {
-      return res.status(404).json({
-        message: user ? "Group not found" : "User not found",
-      });
-    }
-    if (group.members.includes(userId)) {
-      return res.status(400).json({
-        message: "User is already a member of this group",
-      });
-    }
-
-    if (group.members.length >= group.information.groupSize) {
-      return res.status(400).json({
-        message: "Group has reached maximum capacity",
-        currentSize: group.members.length,
-        maxGroupSize: group.information.groupSize,
-      });
-    }
-
-    if (group.settings.inviteOnly) {
-      return res.status(403).json({
-        message: "This group requires an invitation to join",
-      });
-    }
-
-
-    group.members.push(userId);
-    user.groupsJoined.push(groupId);
-    await Promise.all([group.save(), user.save()]);
-    res.status(200).json({
-      message: "Group joined!",
-      groupName: group.information.name,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Server error. Please try again.",
-      error: error.message,
-    });
-  }
-};
-
-// DELETE /api/groups/:groupId/leave
-const leaveGroup = async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
-    return res.status(400).json({message: "Invalid group ID"});
-  }
-
-  try {
-    // Promise.all() is used to run both queries concurrently
-    const [user, group] = await Promise.all([
-      // Remove with $pull
-      User.findByIdAndUpdate(
-        req.user.id,
-        {$pull: {groupsJoined: req.params.groupId}}
-      ),
-      Group.findByIdAndUpdate(
-        req.params.groupId,
-        {$pull: {members: req.user.id}}
-      )
-    ]);
-
-    if (!user || !group) {
-      return res.status(404).json({
-        message: user ? "Group not found" : "User not found"
-      });
-    }
-
-    res.json({message: "Successfully left the group"});
-  } catch (error) {
-    res.status(500).json({message: error.message});
-  }
-};
-
 module.exports = {
   getAllUsers,
   getUserProfile,
   getJoinedGroups,
-  joinGroup,
-  leaveGroup,
   updateUser,
   deleteUser,
 };

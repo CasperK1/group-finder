@@ -1,11 +1,20 @@
+// TODO:
+// When viewing group information, check if the given user ID matches the group owner's ID
+// Function to add moderators (only for the owner?)
+// Function to kick members out of groups, but only for owners/moderators
+// Function to send group invites to users
+// Hide certain fields from getAllGroups
+// Removing user from group also removes them from moderator list (What to do when owner leaves the group?)
+// Deleting the group also removes the group ID from all users' groupsJoined array
+
 const Group = require("../models/Group");
+const User = require("../models/User");
 const mongoose = require("mongoose");
 
 /* Example form:
 {
-    "owner": "Group Owner",
     "name": "Cool Group",
-    "photo": "https://static.wikia.nocookie.net/silly-cat/images/1/19/Thumbs_Up.png/revision/latest/scale-to-width-down/1000?cb=20231201204731&format=original",
+    "photo": "group-pic",
     "bio": "Description goes here lorem ipsum blah blah",
     "city": "Helsinki",
     "groupSize": 4
@@ -61,7 +70,6 @@ const getGroupInformation = async (req, res) => {
 const createGroup = async (req, res) => {
     try {
         const {
-            owner,
             name,
             photo,
             bio,
@@ -103,6 +111,10 @@ const updateGroup = async (req, res) => {
     const { groupId } = req.params;
     const updates = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+        return res.status(400).json({ message: "Invalid group ID"} );
+    }
+
     if (!updates || Object.keys(updates).length === 0) {
         return res.status(400).json({ message: "No update data provided" });
     }
@@ -137,6 +149,85 @@ const updateGroup = async (req, res) => {
     }
 }
 
+//PUT /api/groups/:groupId/join
+const joinGroup = async (req, res) => {
+    const userId = req.user.id;
+    const groupId = req.params.groupId;
+
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+        return res.status(400).json({ message: "Invalid group ID" });
+    }
+
+    try {
+        let user, group;
+
+        [user, group] = await Promise.all([
+              User.findById(userId),
+              Group.findById(groupId)]);
+
+        if (!group || !user) {
+            return res.status(404).json({
+                message: user ? "Group not found" : "User not found"
+            });
+        }
+
+        if (group.members.includes(userId)) {
+            return res.status(400).json({ message: "This user is already a member!" });
+        }
+
+        if (group.members.length >= group.information.groupSize) {
+            return res.status(400).json({ message: "Group is full!" });
+        }
+
+        if (group.settings.inviteOnly) {
+            return res.status(403).json({
+                message: "This group requires an invitation to join."
+            });
+        }
+
+        group.members.push(userId);
+        user.groupsJoined.push(groupId);
+        await Promise.all([group.save(), user.save()]);
+
+        res.status(200).json({ message: "Succesfully joined the group." });
+        
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+//PUT /api/groups/:groupId/leave
+const leaveGroup = async (req, res) => {
+    const userId = req.user.id;
+    const groupId = req.params.groupId;
+
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+        return res.status(400).json({ message: "Invalid group ID" });
+    }
+
+    try {
+        let user, group;
+
+        [user, group] = await Promise.all([
+              User.findById(userId),
+              Group.findById(groupId)]);
+
+        if (!group || !user) {
+            return res.status(404).json({
+                message: user ? "Group not found" : "User not found"
+            });
+        }
+
+        group.members.pull(userId);
+        user.groupsJoined.pull(groupId);
+        await Promise.all([group.save(), user.save()]);
+
+        res.status(200).json({ message: "Succesfully left the group." });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 // DELETE /groups/:groupId
 const deleteGroup = async (req, res) => {
     const { groupId } = req.params;
@@ -157,14 +248,12 @@ const deleteGroup = async (req, res) => {
     }
 };
 
-// TODO:
-// When searching for groups, implement way to filter by city/time preference/skill levels/etc?
-// When viewing group information, check if the given user ID matches the group owner's ID
-
 module.exports = {
     getAllGroups,
     getGroupInformation,
     createGroup,
     updateGroup,
+    joinGroup,
+    leaveGroup,
     deleteGroup
 }
