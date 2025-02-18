@@ -1,6 +1,51 @@
 const User = require('../models/User');
 const Group = require('../models/Group');
 const s3Service = require('../services/s3Service');
+const mongoose = require("mongoose");
+
+// TODO: getProfilePictures is not final. Still need a way to minimize S3 api calls (free tier limit)
+// GET /api/users/profile-pictures?userIds=id1,id2,id3 ...
+const getProfilePictures = async (req, res) => {
+  try {
+    // Get array of user IDs from query parameter
+    const userIds = req.query.userIds?.split(',') || [];
+
+    if (!userIds.length) {
+      return res.status(400).json({ message: 'No user IDs provided' });
+    }
+    // Find all users and get their profile photo keys. $ne: not equal
+    const users = await User.find({
+      _id: { $in: userIds },
+      'profile.photo': { $ne: null }
+    });
+
+    // Generate signed URLs for all photos in parallel
+    const profilePictures = await Promise.all(
+      users.map(async (user) => {
+        let signedUrl = null;
+          try {
+            signedUrl = await s3Service.getFileDownloadUrl(user.profile.photo, 86400);
+          } catch (error) {
+            console.error(`Error generating URL for user ${user._id}:`, error);
+          }
+        return {
+          userId: user._id,
+          photoUrl: signedUrl,
+          // Include expiration time so frontend knows when to refresh
+          expiresAt: new Date(Date.now() + 86400000)// 24 hours in millisecond
+        };
+      })
+    );
+
+    res.json(profilePictures);
+  } catch (error) {
+    console.error('Error fetching profile pictures:', error);
+    res.status(500).json({
+      message: 'Failed to fetch profile pictures',
+      error: error.message
+    });
+  }
+};
 
 // POST /api/files/upload/profile-picture
 const uploadProfileImage = async (req, res) => {
@@ -18,7 +63,6 @@ const uploadProfileImage = async (req, res) => {
         console.error('Error deleting old profile picture:', error);
       }
     }
-
 
     // Update user's profile photo with the new S3 location
     user.profile.photo = req.file.key;
@@ -63,6 +107,9 @@ const deleteProfileImage = async (req, res) => {
 
 // POST /api/files/group/:groupId
 const uploadGroupFile = async (req, res) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
+    return res.status(400).json({message: "Invalid group ID"});
+  }
   try {
     if (!req.file) {
       return res.status(400).json({message: 'No file uploaded'});
@@ -87,7 +134,7 @@ const uploadGroupFile = async (req, res) => {
       fileType,
       size: req.file.size,
       uploadedBy: req.user.id,
-      username:user.username,
+      username: user.username,
       description: req.body.description || '',
       tags: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
       lastModified: new Date()
@@ -109,8 +156,59 @@ const uploadGroupFile = async (req, res) => {
   }
 };
 
+// GET /api/files/group/:groupId
+const getGroupFiles = async (req, res) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
+    return res.status(400).json({message: "Invalid group ID"});
+  }
+  try {
+    const {groupId} = req.params;
+
+    // Find the group and check if it exists
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({message: 'Group not found'});
+    }
+
+    // Check if user is a member of the group
+    if (!group.members.includes(req.user.id)) {
+      return res.status(403).json({message: 'Access denied: Not a group member'});
+    }
+
+    // Get all files from the group
+    const files = group.documents.map(doc => ({
+      id: doc.id,
+      fileName: doc.originalName,
+      fileType: doc.fileType,
+      size: doc.size,
+      uploadedBy: doc.uploadedBy,
+      uploadedAt: doc.uploadedAt,
+      lastModified: doc.lastModified,
+      description: doc.description,
+      tags: doc.tags,
+      downloads: doc.downloads,
+      isArchived: doc.isArchived
+    }));
+
+    res.status(200).json({
+      count: files.length,
+      files: files
+    });
+
+  } catch (error) {
+    console.error('Error in getGroupFiles:', error);
+    res.status(500).json({
+      message: 'Failed to retrieve group files',
+      error: error.message
+    });
+  }
+};
+
 // GET /api/files/group/:groupId/:fileId
-const getGroupFile = async (req, res) => {
+const downloadGroupFile = async (req, res) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
+    return res.status(400).json({message: "Invalid group ID"});
+  }
   try {
     const {groupId, fileId} = req.params;
 
@@ -155,9 +253,82 @@ const getGroupFile = async (req, res) => {
     });
   }
 };
+
+
+// DELETE /api/files/group/:groupId/:fileId
+const deleteGroupFile = async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.groupId) ||
+      !mongoose.Types.ObjectId.isValid(req.params.fileId)) {
+    return res.status(400).json({message: "Invalid ID format"});
+  }
+
+  try {
+    const [user, group] = await Promise.all([
+      User.findById(req.user.id),
+      Group.findById(req.params.groupId)
+    ]);
+
+    if (!user || !group) {
+      return res.status(404).json({
+        message: user ? "Group not found" : "User not found",
+      });
+    }
+
+    // Find file in group's documents array
+    const file = group.documents.id(req.params.fileId);
+    if (!file) {
+      return res.status(404).json({
+        message: "File not found",
+      });
+    }
+    const fileKey = file.key;
+
+    if (!group.members.includes(req.user.id)) {
+      return res.status(403).json({message: 'Must be a group member to delete files!'});
+    }
+
+    // Only file uploader or moderator/owner can delete
+    const isOwner = group.owner.toString() === req.user.id;
+    const isModerator = group.moderators.some(id => id.toString() === req.user.id);
+    const isUploader = file.uploadedBy.toString() === req.user.id;
+
+    if (!isOwner && !isModerator && !isUploader) {
+      return res.status(403).json({
+        message: 'You do not have permission to delete this file',
+        fileOwner: isOwner,
+        fileModerator: isModerator,
+        fileUploader: isUploader
+      });
+    }
+
+    // Delete from S3
+    await s3Service.deleteFile(fileKey);
+
+    // Remove the file from the group's documents array
+    group.documents.pull(req.params.fileId);
+
+    // Save the updated group
+    await group.save();
+
+    res.status(200).json({
+      message: 'File deleted successfully',
+      fileId: req.params.fileId
+    });
+  } catch (error) {
+    console.error('Error in deleteGroupFile:', error);
+    res.status(500).json({
+      message: 'Failed to delete file',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   uploadProfileImage,
   deleteProfileImage,
+  getProfilePictures,
   uploadGroupFile,
-  getGroupFile
+  getGroupFiles,
+  downloadGroupFile,
+  deleteGroupFile
 };

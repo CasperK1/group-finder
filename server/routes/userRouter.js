@@ -6,8 +6,6 @@ const {
   getUserProfile,
   getJoinedGroups,
   updateUser,
-  joinGroup,
-  leaveGroup,
   deleteUser,
 } = require("../controllers/userControllers");
 
@@ -20,8 +18,6 @@ router.get("/profile/:userId", getUserProfile);
 router.get("/profile/", auth, getUserProfile);
 router.get("/groups/joined", auth, getJoinedGroups);
 router.put("/settings", auth, updateUser);
-router.post("/groups/:groupId/join", auth, joinGroup);
-router.delete("/groups/:groupId/leave", auth, leaveGroup);
 router.delete("/settings", auth, deleteUser);
 
 module.exports = router;

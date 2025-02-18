@@ -16,7 +16,7 @@ class S3Service {
   }
 
   // Signed URL for getting and downloading files from S3
-  async getFileDownloadUrl(key) {
+  async getFileDownloadUrl(key, expiresIn = 900) {
     if (!key) return null;
 
     try {
@@ -27,7 +27,7 @@ class S3Service {
 
       // Generate URL that expires in 15 minutes
       const signedUrl = await getSignedUrl(this.s3Client, command, {
-        expiresIn: 900 // 15 minutes
+        expiresIn: expiresIn // default is 15 mins
       });
 
       return signedUrl;

@@ -5,12 +5,15 @@ const s3Service = require('../services/s3Service');
 const {
   uploadProfileImage,
   deleteProfileImage,
+  getProfilePictures,
   uploadGroupFile,
-  getGroupFile
+  getGroupFiles,
+  downloadGroupFile,
+  deleteGroupFile
 } = require('../controllers/fileControllers');
 
 /*
-  Due to how multer works, the upload functions need to be called as middleware in the route handlers.
+  Due to how multer works, the s3Service's upload functions need to be called as middleware in the route handlers.
   Raw data from the file needs to be processed before it reaches controller
   s3Service.deleteFile can be called directly in the controller since data for that file already exists
 */
@@ -19,14 +22,12 @@ const {
 // User files
 router.post('/upload/profile-picture', auth, s3Service.uploadProfilePicture(), uploadProfileImage);
 router.delete('/delete/profile-picture', auth, deleteProfileImage);
-// TODO:
-// GET profile picture
+router.get('/profile-pictures', auth, getProfilePictures);
 
 // Group files
-// TODO: commented below and maybe more?
-// GET /api/files/group/:groupId
-// DELETE /api/files/group/:groupId/:fileId
+router.get('/group/:groupId/:fileId', auth, getGroupFiles);
+router.delete('/group/:groupId/:fileId', auth, deleteGroupFile);
 router.post('/upload/group/:groupId', auth, s3Service.uploadGroupFile(), uploadGroupFile);
-router.get('/group/:groupId/:fileId', auth, getGroupFile);
+router.get('/group/:groupId/:fileId', auth, downloadGroupFile);
 
 module.exports = router;
