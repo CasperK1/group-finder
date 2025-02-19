@@ -1,11 +1,11 @@
 import Reactm, { useEffect, useState } from 'react';
 import { apiService } from '../../services/api/apiService';
 import logo from '../../assets/Groupfinderlogo.png';
-function GroupHeader({ groupName, user, major }) {
+export function GroupHeader({ groupName, user, major }) {
   return (
     <div className="flex items-center mb-4">
-      <img src={logo} alt="Group logo" className="w-50 h-autbutton " />
-      <div className="ml-20 spacing-2">
+      <img src={logo} alt="Group logo" className="w-20 h-autbutton " />
+      <div className="ml-2 spacing-2">
         <h2 className="text-xl font-semibold mb-4">{groupName ? groupName : 'Default Group Name'}</h2>
         <p className="text-blue-500">{user ? user : 'Default User'}</p>
         <p className="text-gray-400">{major ? major : 'Default Major'}</p>
@@ -14,15 +14,14 @@ function GroupHeader({ groupName, user, major }) {
   );
 }
 
-function GroupLocation({
+export function GroupLocation({
   year = 'Unknown Year',
   city = 'Unknown City',
   time = 'Unknown Time',
-  location = 'Unknown Location', // corrected spelling from "localtion"
 }) {
   return (
     <div className="mb-8 items-center justify-between">
-      <p className="text-gray-400 mb-2">{location}</p>
+      <p className="text-gray-400 mb-2">Location</p>
       <div className="flex justify-between text-gray-400">
         <span>{year}</span>
         <span>{city}</span>
@@ -32,7 +31,7 @@ function GroupLocation({
   );
 }
 
-function GroupDescription({ description = 'No description available.' }) {
+export function GroupDescription({ description = 'No description available.' }) {
   return <p className="text-gray-600 mb-4">{description}</p>;
 }
 
@@ -164,6 +163,7 @@ function GroupInformation(id) {
 
   useEffect(() => {
     console.log('fetch data');
+    console.log('token', jwt);
     const fetchGroupData = async () => {
       try {
         const response = await apiService.getGroupInformationData({ token: jwt, id: id });
