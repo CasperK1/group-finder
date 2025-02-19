@@ -1,24 +1,22 @@
-import Reactm, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { apiService } from '../../services/api/apiService';
 import logo from '../../assets/Groupfinderlogo.png';
+import { useParams } from 'react-router-dom';
+
 export function GroupHeader({ groupName, user, major }) {
   return (
     <div className="flex items-center mb-4">
       <img src={logo} alt="Group logo" className="w-20 h-autbutton " />
       <div className="ml-2 spacing-2">
-        <h2 className="text-xl font-semibold mb-4">{groupName ? groupName : 'Default Group Name'}</h2>
-        <p className="text-blue-500">{user ? user : 'Default User'}</p>
-        <p className="text-gray-400">{major ? major : 'Default Major'}</p>
+        <h2 className="text-xl font-semibold mb-4">{groupName || 'Default Group Name'}</h2>
+        <p className="text-blue-500">{user || 'Default User'}</p>
+        <p className="text-gray-400">{major || 'Default Major'}</p>
       </div>
     </div>
   );
 }
 
-export function GroupLocation({
-  year = 'Unknown Year',
-  city = 'Unknown City',
-  time = 'Unknown Time',
-}) {
+export function GroupLocation({ year = 'Unknown Year', city = 'Unknown City', time = 'Unknown Time' }) {
   return (
     <div className="mb-8 items-center justify-between">
       <p className="text-gray-400 mb-2">Location</p>
@@ -38,14 +36,11 @@ export function GroupDescription({ description = 'No description available.' }) 
 function GroupTabs({ activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
   const renderChatModal = () => {
     return (
-      <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50">
+      <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50">
         <div className="bg-white p-6 rounded-lg w-96">
           <div className="flex justify-between mb-4">
             <h2 className="text-xl font-semibold">Chat</h2>
-            <button
-              className="text-gray-600"
-              onClick={toggleChatModal} // Close the modal
-            >
+            <button className="text-gray-600" onClick={toggleChatModal}>
               X
             </button>
           </div>
@@ -53,11 +48,7 @@ function GroupTabs({ activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
             <p className="text-gray-500">Chat messages will appear here...</p>
           </div>
           <div>
-            <input
-              type="text"
-              className="w-full p-2 rounded-lg border border-gray-300"
-              placeholder="Type a message..."
-            />
+            <input type="text" className="w-full p-2 rounded-lg border border-gray-300" placeholder="Type a message..." />
           </div>
         </div>
       </div>
@@ -66,8 +57,8 @@ function GroupTabs({ activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
 
   return (
     <div>
-      <div className="flex  items-center justify-center ">
-        <div className="flex items-center bg-gray-100 w-fit p-2 rounded-lg ">
+      <div className="flex items-center justify-center">
+        <div className="flex items-center bg-gray-100 w-fit p-2 rounded-lg">
           {[
             { name: 'Documents', label: 'Documents' },
             { name: 'Members', label: 'Members' },
@@ -87,7 +78,7 @@ function GroupTabs({ activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
           ))}
           <button
             className="ml-4 bg-blue-500 text-white p-2 rounded-full transition transform duration-200 hover:scale-105"
-            onClick={() => toggleChatModal()}
+            onClick={toggleChatModal}
           >
             Chat
           </button>
@@ -111,7 +102,7 @@ function GroupFooter({ isJoinedGroup, handleJoinGroup, handleBlockGroup, handleS
         <div className="flex-grow flex justify-center">
           <button
             className="bg-black text-white px-4 py-2 rounded transition transform duration-200 hover:scale-105 active:scale-95"
-            onClick={() => handleJoinGroup()}
+            onClick={handleJoinGroup}
           >
             Join
           </button>
@@ -120,14 +111,14 @@ function GroupFooter({ isJoinedGroup, handleJoinGroup, handleBlockGroup, handleS
           <button
             className="fas fa-ban text-black transition transform duration-200 hover:scale-110 active:scale-95"
             aria-hidden="true"
-            onClick={() => handleBlockGroup()}
+            onClick={handleBlockGroup}
           >
             icon1
           </button>
           <button
             className="fas fa-bookmark text-black transition transform duration-200 hover:scale-110 active:scale-95"
             aria-hidden="true"
-            onClick={() => handleSaveGroup()}
+            onClick={handleSaveGroup}
           >
             icon2
           </button>
@@ -142,7 +133,7 @@ function GroupFooter({ isJoinedGroup, handleJoinGroup, handleBlockGroup, handleS
         <div className="flex-grow flex justify-center">
           <button
             className="bg-black text-white px-4 py-2 rounded transition transform duration-200 hover:scale-105 active:scale-95"
-            onClick={() => handleLeaveGroup()}
+            onClick={handleLeaveGroup}
           >
             Leave
           </button>
@@ -154,7 +145,8 @@ function GroupFooter({ isJoinedGroup, handleJoinGroup, handleBlockGroup, handleS
   return <div>{!isJoinedGroup ? renderJoinButton() : renderLeaveButton()}</div>;
 }
 
-function GroupInformation(id) {
+function GroupInformation() {
+  const { id } = useParams();
   const [groupData, setGroupData] = useState(null);
   const [isJoined, setIsJoined] = useState(false);
   const [activeTab, setActiveTab] = useState('Documents');
@@ -162,44 +154,43 @@ function GroupInformation(id) {
   const jwt = localStorage.getItem('jwtToken');
 
   useEffect(() => {
-    console.log('fetch data');
-    console.log('token', jwt);
     const fetchGroupData = async () => {
       try {
-        const response = await apiService.getGroupInformationData({ token: jwt, id: id });
-        if (!response) {
-          console.log('dont have data');
-          return;
+        const response = await apiService.getGroupInformationData({ token: jwt, id });
+        if (response) {
+          setGroupData(response);
+        } else {
+          console.log('No data received');
         }
-        setGroupData(response);
-        // setIsJoined(response.isJoined);
       } catch (error) {
         console.error('Error fetching group data:', error);
       }
     };
+
     fetchGroupData();
-  }, [id, jwt, isJoined]);
-  console.log('groupData');
+  }, [id]);
+
+  if (!groupData) {
+    return <div>Loading...</div>;
+  }
+
+  console.log('Group Information:', groupData[0].information.name);
 
   const handleJoinGroup = () => {
     console.log('Join button clicked');
     setIsJoined(true);
-    //Todo sentry
   };
 
   const handleBlockGroup = () => {
     console.log('Group is blocked');
-    //Todo sentry
   };
   const handleSaveGroup = () => {
     console.log('Group is saved');
-    //Todo sentry
   };
 
   const handleLeaveGroup = () => {
     console.log('Left Group');
     setIsJoined(false);
-    //Todo sentry
   };
 
   const toggleChatModal = () => {
@@ -207,10 +198,14 @@ function GroupInformation(id) {
   };
 
   return (
-    <div className="bg-white w-full  min-h-screen p-8 rounded-xl shadow-md relative">
-      <GroupHeader />
-      <GroupLocation />
-      <GroupDescription />
+    <div className="bg-white w-full min-h-screen p-8 rounded-xl shadow-md relative">
+      <GroupHeader groupName={groupData[0].information.name} />
+      <GroupLocation
+        year={new Date(groupData[0].createdAt).getFullYear()}
+        city={groupData[0].information.city}
+        time={new Date(groupData[0].createdAt).getDate()}
+      />
+      <GroupDescription description={groupData[0].information.bio} />
       {isJoined && (
         <GroupTabs
           activeTab={activeTab}
