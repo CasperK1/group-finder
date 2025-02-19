@@ -2,24 +2,29 @@ import React, { useEffect, useState } from 'react';
 import { apiService } from '../../services/api/apiService';
 import logo from '../../assets/Groupfinderlogo.png';
 import { useParams } from 'react-router-dom';
-
-export function GroupHeader({ groupName, user, major }) {
+import { convertDate } from '../../utils/date';
+export function GroupHeader({ groupInfo, groupName, user, major }) {
   return (
     <div className="flex items-center mb-4">
-      <img src={logo} alt="Group logo" className="w-20 h-autbutton " />
-      <div className="ml-2 spacing-2">
-        <h2 className="text-xl font-semibold mb-4">{groupName || 'Default Group Name'}</h2>
+      <div
+        className={`${groupInfo ? 'w-50 h-50' : 'w-20 h-20'} bg-gray-300 rounded-lg flex justify-center items-center`}
+      >
+        <img src={logo} alt="Group logo" className="w-auto h-auto rounded-full p-2" />
+      </div>
+
+      <div className={groupInfo ? 'ml-20 spacing-2' : 'ml-4 spacing-2'}>
+        <h2 className="text-xl font-semibold ">{groupName || 'Default Group Name'}</h2>
         <p className="text-blue-500">{user || 'Default User'}</p>
-        <p className="text-gray-400">{major || 'Default Major'}</p>
+        {groupInfo && <p className="text-gray-400">{major || 'Default Major'}</p>}
       </div>
     </div>
   );
 }
 
-export function GroupLocation({ year = 'Unknown Year', city = 'Unknown City', time = 'Unknown Time' }) {
+export function GroupLocation({ groupInfo, year = 'Unknown Year', city = 'Unknown City', time = 'Unknown Time' }) {
   return (
-    <div className="mb-8 items-center justify-between">
-      <p className="text-gray-400 mb-2">Location</p>
+    <div className={`${groupInfo ? 'max-w-[600px]' : ''} mb-4 items-center justify-between`}>
+      <p className="text-gray-400">Location</p>
       <div className="flex justify-between text-gray-400">
         <span>{year}</span>
         <span>{city}</span>
@@ -30,13 +35,33 @@ export function GroupLocation({ year = 'Unknown Year', city = 'Unknown City', ti
 }
 
 export function GroupDescription({ description = 'No description available.' }) {
-  return <p className="text-gray-600 mb-4">{description}</p>;
+  return <p className="text-gray-600 mb-8">{description}</p>;
 }
 
-function GroupTabs({ activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
+function GroupTabs({ groupId, activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
+  const [groupFiles, setGroupFiles] = useState(null);
+
+  useEffect(() => {
+    const jwt = localStorage.getItem('jwtToken');
+    // const fetchGroupFiles = async () => {
+    //   try {
+    //     const response = await apiService.getGroupFiles({ token: jwt, id: groupId });
+    //     if (response) {
+    //       setGroupFiles(response);
+    //     } else {
+    //       console.log('No data received');
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching group data:', error);
+    //   }
+    // };
+
+    // fetchGroupFiles();
+  }, []);
+
   const renderChatModal = () => {
     return (
-      <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50">
+      <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50 ">
         <div className="bg-white p-6 rounded-lg w-96">
           <div className="flex justify-between mb-4">
             <h2 className="text-xl font-semibold">Chat</h2>
@@ -48,7 +73,11 @@ function GroupTabs({ activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
             <p className="text-gray-500">Chat messages will appear here...</p>
           </div>
           <div>
-            <input type="text" className="w-full p-2 rounded-lg border border-gray-300" placeholder="Type a message..." />
+            <input
+              type="text"
+              className="w-full p-2 rounded-lg border border-gray-300"
+              placeholder="Type a message..."
+            />
           </div>
         </div>
       </div>
@@ -56,7 +85,7 @@ function GroupTabs({ activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
   };
 
   return (
-    <div>
+    <div className="mb-4">
       <div className="flex items-center justify-center">
         <div className="flex items-center bg-gray-100 w-fit p-2 rounded-lg">
           {[
@@ -94,53 +123,48 @@ function GroupTabs({ activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
   );
 }
 
-function GroupFooter({ isJoinedGroup, handleJoinGroup, handleBlockGroup, handleSaveGroup, handleLeaveGroup }) {
-  const renderJoinButton = () => {
-    return (
-      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between mb-4 px-4">
-        <span className="absolute text-gray-400 z-10">28 March 2021</span>
-        <div className="flex-grow flex justify-center">
-          <button
-            className="bg-black text-white px-4 py-2 rounded transition transform duration-200 hover:scale-105 active:scale-95"
-            onClick={handleJoinGroup}
-          >
-            Join
-          </button>
-        </div>
-        <div className="absolute flex space-x-4 z-10 right-0 mr-4">
-          <button
-            className="fas fa-ban text-black transition transform duration-200 hover:scale-110 active:scale-95"
-            aria-hidden="true"
-            onClick={handleBlockGroup}
-          >
-            icon1
-          </button>
-          <button
-            className="fas fa-bookmark text-black transition transform duration-200 hover:scale-110 active:scale-95"
-            aria-hidden="true"
-            onClick={handleSaveGroup}
-          >
-            icon2
-          </button>
-        </div>
-      </div>
-    );
-  };
+export function GroupFooter({
+  groupInfo,
+  isJoinedGroup,
+  date,
+  handleJoinGroup,
+  handleBlockGroup,
+  handleSaveGroup,
+  handleLeaveGroup,
+}) {
+  const Button = ({ onClick, text, className, icon }) => (
+    <button
+      className={`${className} transition transform duration-200 hover:scale-105 active:scale-95`}
+      onClick={onClick}
+    >
+      {icon && <i className={icon} aria-hidden="true"></i>}
+      {text}
+    </button>
+  );
 
-  const renderLeaveButton = () => {
-    return (
-      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between mb-4 px-4">
+  const renderJoinButton = () => (
+    <div className="flex items-center justify-between mb-4 px-4">
+      <span className="text-gray-400">{date}</span>
+      {groupInfo && (
         <div className="flex-grow flex justify-center">
-          <button
-            className="bg-black text-white px-4 py-2 rounded transition transform duration-200 hover:scale-105 active:scale-95"
-            onClick={handleLeaveGroup}
-          >
-            Leave
-          </button>
+          <Button onClick={handleJoinGroup} text="Join" className="bg-black text-white px-4 py-2 rounded" />
         </div>
+      )}
+
+      <div className="flex space-x-4">
+        <Button onClick={handleBlockGroup} className="fas fa-ban text-black" icon="fas fa-ban" />
+        <Button onClick={handleSaveGroup} className="fas fa-bookmark text-black" icon="fas fa-bookmark" />
       </div>
-    );
-  };
+    </div>
+  );
+
+  const renderLeaveButton = () => (
+    <div className="flex items-center justify-between mb-4 px-4">
+      <div className="flex-grow flex justify-center">
+        <Button onClick={handleLeaveGroup} text="Leave" className="bg-black text-white px-4 py-2 rounded" />
+      </div>
+    </div>
+  );
 
   return <div>{!isJoinedGroup ? renderJoinButton() : renderLeaveButton()}</div>;
 }
@@ -151,12 +175,13 @@ function GroupInformation() {
   const [isJoined, setIsJoined] = useState(false);
   const [activeTab, setActiveTab] = useState('Documents');
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const jwt = localStorage.getItem('jwtToken');
-
+  
   useEffect(() => {
+    const jwt = localStorage.getItem('jwtToken');
+
     const fetchGroupData = async () => {
       try {
-        const response = await apiService.getGroupInformationData({ token: jwt, id });
+        const response = await apiService.getGroupInformationData({ token: jwt, id:id})
         if (response) {
           setGroupData(response);
         } else {
@@ -174,11 +199,18 @@ function GroupInformation() {
     return <div>Loading...</div>;
   }
 
-  console.log('Group Information:', groupData[0].information.name);
-
-  const handleJoinGroup = () => {
-    console.log('Join button clicked');
-    setIsJoined(true);
+  const handleJoinGroup = async (groupId) => {
+    try {
+      const jwt = localStorage.getItem('jwtToken');
+      const response = await apiService.joinGroup({ token: jwt, id:groupId });
+      if (!response) {
+        return;
+      } else {
+        setIsJoined(true);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleBlockGroup = () => {
@@ -188,9 +220,18 @@ function GroupInformation() {
     console.log('Group is saved');
   };
 
-  const handleLeaveGroup = () => {
-    console.log('Left Group');
-    setIsJoined(false);
+  const handleLeaveGroup = async() => {
+    try {
+      const jwt = localStorage.getItem('jwtToken');
+      const response = await apiService.leaveGroup({ token: jwt, id });
+      if (!response) {
+        return;
+      } else {
+        setIsJoined(false);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const toggleChatModal = () => {
@@ -198,12 +239,13 @@ function GroupInformation() {
   };
 
   return (
-    <div className="bg-white w-full min-h-screen p-8 rounded-xl shadow-md relative">
-      <GroupHeader groupName={groupData[0].information.name} />
+    <div className="bg-white w-full p-8 rounded-xl shadow-md relative overflow-y-auto">
+      <GroupHeader groupInfo={true} groupName={groupData[0].information.name} />
       <GroupLocation
-        year={new Date(groupData[0].createdAt).getFullYear()}
+        groupInfo={true}
+        year={convertDate(groupData[0].createdAt).year}
         city={groupData[0].information.city}
-        time={new Date(groupData[0].createdAt).getDate()}
+        time={convertDate(groupData[0].createdAt).formattedDate}
       />
       <GroupDescription description={groupData[0].information.bio} />
       {isJoined && (
@@ -215,8 +257,10 @@ function GroupInformation() {
         />
       )}
       <GroupFooter
+        groupInfo={true}
         isJoinedGroup={isJoined}
-        handleJoinGroup={handleJoinGroup}
+        date={convertDate(groupData[0].createdAt).formattedDate}
+        handleJoinGroup={()=>{handleJoinGroup(id)}}
         handleBlockGroup={handleBlockGroup}
         handleSaveGroup={handleSaveGroup}
         handleLeaveGroup={handleLeaveGroup}
