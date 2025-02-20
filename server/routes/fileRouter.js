@@ -25,7 +25,7 @@ router.delete('/delete/profile-picture', auth, deleteProfileImage);
 router.get('/profile-pictures', auth, getProfilePictures);
 
 // Group files
-router.get('/group/:groupId/:fileId', auth, getGroupFiles);
+router.get('/group/:groupId/', auth, getGroupFiles);
 router.delete('/group/:groupId/:fileId', auth, deleteGroupFile);
 router.post('/upload/group/:groupId', auth, s3Service.uploadGroupFile(), uploadGroupFile);
 router.get('/group/:groupId/:fileId', auth, downloadGroupFile);
