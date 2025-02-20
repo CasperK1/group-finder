@@ -11,23 +11,23 @@ const getProfilePictures = async (req, res) => {
     const userIds = req.query.userIds?.split(',') || [];
 
     if (!userIds.length) {
-      return res.status(400).json({ message: 'No user IDs provided' });
+      return res.status(400).json({message: 'No user IDs provided'});
     }
     // Find all users and get their profile photo keys. $ne: not equal
     const users = await User.find({
-      _id: { $in: userIds },
-      'profile.photo': { $ne: null }
+      _id: {$in: userIds},
+      'profile.photo': {$ne: null}
     });
 
     // Generate signed URLs for all photos in parallel
     const profilePictures = await Promise.all(
       users.map(async (user) => {
         let signedUrl = null;
-          try {
-            signedUrl = await s3Service.getFileDownloadUrl(user.profile.photo, 86400);
-          } catch (error) {
-            console.error(`Error generating URL for user ${user._id}:`, error);
-          }
+        try {
+          signedUrl = await s3Service.getFileDownloadUrl(user.profile.photo, 86400);
+        } catch (error) {
+          console.error(`Error generating URL for user ${user._id}:`, error);
+        }
         return {
           userId: user._id,
           photoUrl: signedUrl,
@@ -36,7 +36,7 @@ const getProfilePictures = async (req, res) => {
         };
       })
     );
-
+    res.setHeader('Cache-Control', 'private, max-age=86400');
     res.json(profilePictures);
   } catch (error) {
     console.error('Error fetching profile pictures:', error);
@@ -107,7 +107,7 @@ const deleteProfileImage = async (req, res) => {
 
 // POST /api/files/group/:groupId
 const uploadGroupFile = async (req, res) => {
-    if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
     return res.status(400).json({message: "Invalid group ID"});
   }
   try {
@@ -158,7 +158,7 @@ const uploadGroupFile = async (req, res) => {
 
 // GET /api/files/group/:groupId
 const getGroupFiles = async (req, res) => {
-    if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
     return res.status(400).json({message: "Invalid group ID"});
   }
   try {
@@ -206,7 +206,7 @@ const getGroupFiles = async (req, res) => {
 
 // GET /api/files/group/:groupId/:fileId
 const downloadGroupFile = async (req, res) => {
-    if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
     return res.status(400).json({message: "Invalid group ID"});
   }
   try {
@@ -234,7 +234,7 @@ const downloadGroupFile = async (req, res) => {
     // Increment download counter
     file.downloads += 1;
     await group.save();
-
+    res.setHeader('Cache-Control', 'private, max-age=900');
     res.json({
       downloadUrl,
       fileName: file.originalName,
@@ -243,7 +243,8 @@ const downloadGroupFile = async (req, res) => {
       uploadedAt: file.uploadedAt,
       downloads: file.downloads,
       description: file.description,
-      tags: file.tags
+      tags: file.tags,
+      expiresAt: new Date(Date.now() + 900000) // 15 minutes in milliseconds
     });
   } catch (error) {
     console.error('Error in getGroupFile:', error);
@@ -258,7 +259,7 @@ const downloadGroupFile = async (req, res) => {
 // DELETE /api/files/group/:groupId/:fileId
 const deleteGroupFile = async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.groupId) ||
-      !mongoose.Types.ObjectId.isValid(req.params.fileId)) {
+    !mongoose.Types.ObjectId.isValid(req.params.fileId)) {
     return res.status(400).json({message: "Invalid ID format"});
   }
 
