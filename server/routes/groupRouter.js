@@ -16,6 +16,7 @@ router.get("/", getAllGroups);
 router.get("/:groupId", getGroupInformation);
 
 // Protected routes (need authentication)
+router.get("/auth/:groupId", auth, getGroupInformation);
 router.post("/", auth, createGroup);
 router.put("/:groupId", auth, updateGroup);
 router.put("/:groupId/join", auth, joinGroup);

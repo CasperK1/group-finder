@@ -20,6 +20,7 @@ const groupSchema = new mongoose.Schema(
         enum: ["on-campus", "off-campus", "online", "flexible"],
       },
       groupSize: {type: Number, required: true, min: 2, max: 10},
+      major: {type: String},
       skillLevels: [
         {
           subject: {type: String},
@@ -28,7 +29,6 @@ const groupSchema = new mongoose.Schema(
       ],
     },
     // Chat history, documents and events are only shown to members
-    // Not sure if this is the proper way to implement them, these are mainly placeholders
     chatHistory: [{type: mongoose.Schema.Types.ObjectId, ref: "ChatHistory"}],
     // Pretty long, maybe split to another schema?
     documents: [{

@@ -3,6 +3,7 @@ const path = require('path');
 const multerS3 = require('multer-s3');
 const {S3Client, DeleteObjectCommand, GetObjectCommand} = require('@aws-sdk/client-s3');
 const {getSignedUrl} = require('@aws-sdk/s3-request-presigner');
+const Redis = require('ioredis');
 
 class S3Service {
   constructor() {
@@ -13,11 +14,19 @@ class S3Service {
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       },
     });
+    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
   }
 
   // Signed URL for getting and downloading files from S3
   async getFileDownloadUrl(key, expiresIn = 900) {
     if (!key) return null;
+    // Check redis
+    const cacheKey = `s3url:${key}:${expiresIn}`;
+    const cachedUrl = await this.redis.get(cacheKey);
+    if (cachedUrl) {
+      console.log('Returning cached URL');
+      return cachedUrl;
+    }
 
     try {
       const command = new GetObjectCommand({
@@ -25,10 +34,13 @@ class S3Service {
         Key: key
       });
 
-      // Generate URL that expires in 15 minutes
+      // Generate URL that expires in 15 minutes if no expiration time is provided
       const signedUrl = await getSignedUrl(this.s3Client, command, {
-        expiresIn: expiresIn // default is 15 mins
+        expiresIn: expiresIn
       });
+      // Cache the URL with slightly shorter expiration to prevent serving expired URLs
+      const cacheTTL = Math.floor(expiresIn * 0.95);
+      await this.redis.set(cacheKey, signedUrl, 'EX', cacheTTL);
 
       return signedUrl;
     } catch (error) {
@@ -36,7 +48,6 @@ class S3Service {
       throw new Error('Failed to generate download URL');
     }
   }
-
 
 // Uploader for profile pictures
   uploadProfilePicture() {

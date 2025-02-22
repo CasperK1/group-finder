@@ -1,9 +1,8 @@
 // TODO:
-// When viewing group information, check if the given user ID matches the group owner's ID
+// Only group owner can edit group information / delete the group
 // Function to add moderators (only for the owner?)
-// Function to kick members out of groups, but only for owners/moderators
-// Function to send group invites to users
-// Hide certain fields from getAllGroups
+// Function to kick members out of groups (only for owner/moderators)
+// Function to send group invites to users (only for owner/moderators)
 // Removing user from group also removes them from moderator list (What to do when owner leaves the group?)
 // Deleting the group also removes the group ID from all users' groupsJoined array
 
@@ -24,33 +23,34 @@ const mongoose = require("mongoose");
 // GET /api/groups
 const getAllGroups = async (req, res) => {
     try {
-        const groups = await Group.find().sort({ createdAt: -1 });
+        const groups = await Group.find()
+        .select("-chatHistory -documents -events")
+        .sort({ createdAt: -1 });
         res.status(200).json(groups);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// GET /api/groups/:groupId
+// GET /api/groups/group/:groupId
 const getGroupInformation = async (req, res) => {
-    const { groupId } = req.params;
-    // Placeholder variable for testing. Set to false for non-member view, true for member view
-    const member = false;
+    const groupId = req.params.groupId;
 
     if (!mongoose.Types.ObjectId.isValid(groupId)) {
         return res.status(400).json({ message: "Invalid group ID"} );
     }
 
     try {
+
         if (!groupId) {
             return res.status(400).json({ message: "Group ID is required"});
         }
 
         let query = Group.findById(groupId);
         
-        // If user isn't a member of the group, exclude certain fields
-        if (!member) {
-            query = query.select("-chatHistory -documents -events");
+        // If user isn't logged in or a member of the group, exclude certain fields
+        if (!req.user?.id || !(await Group.findOne({ _id: groupId, members: req.user.id }))) {
+            query = query.select('-chatHistory -documents -events');
         }
 
         const group = await query;
@@ -60,7 +60,6 @@ const getGroupInformation = async (req, res) => {
         }
 
         res.status(200).json(group);
-
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -77,6 +76,7 @@ const createGroup = async (req, res) => {
             timePreference,
             location,
             groupSize,
+            major,
             skillLevels
           } = req.body;
 
@@ -92,6 +92,7 @@ const createGroup = async (req, res) => {
                 timePreference,
                 location,
                 groupSize,
+                major,
                 skillLevels
             },
             chatHistory: [],
@@ -108,7 +109,7 @@ const createGroup = async (req, res) => {
 
 // PUT /api/groups/:groupId
 const updateGroup = async (req, res) => {
-    const { groupId } = req.params;
+    const groupId = req.params.groupId;
     const updates = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(groupId)) {
@@ -230,7 +231,7 @@ const leaveGroup = async (req, res) => {
 
 // DELETE /groups/:groupId
 const deleteGroup = async (req, res) => {
-    const { groupId } = req.params;
+    const groupId = req.params.groupId;
 
     if (!mongoose.Types.ObjectId.isValid(groupId)) {
         return res.status(400).json({ message: "Invalid group ID" });
