@@ -40,23 +40,23 @@ export function GroupDescription({ description = 'No description available.' }) 
 
 function GroupTabs({ groupId, activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
   const [groupFiles, setGroupFiles] = useState(null);
-
+  
   useEffect(() => {
     const jwt = localStorage.getItem('jwtToken');
-    // const fetchGroupFiles = async () => {
-    //   try {
-    //     const response = await apiService.getGroupFiles({ token: jwt, id: groupId });
-    //     if (response) {
-    //       setGroupFiles(response);
-    //     } else {
-    //       console.log('No data received');
-    //     }
-    //   } catch (error) {
-    //     console.error('Error fetching group data:', error);
-    //   }
-    // };
+    const fetchGroupFiles = async () => {
+      try {
+        const response = await apiService.getGroupFiles({ token: jwt, id: groupId });
+        if (response) {
+          setGroupFiles(response);
+        } else {
+          console.log('No data received');
+        }
+      } catch (error) {
+        console.error('Error fetching group data:', error);
+      }
+    };
 
-    // fetchGroupFiles();
+    fetchGroupFiles();
   }, []);
 
   const renderChatModal = () => {
@@ -194,7 +194,8 @@ function GroupInformation() {
 
     fetchGroupData();
   }, [id]);
-
+  console.log(groupData);
+  
   if (!groupData) {
     return <div>Loading...</div>;
   }
@@ -204,9 +205,9 @@ function GroupInformation() {
       const jwt = localStorage.getItem('jwtToken');
       const response = await apiService.joinGroup({ token: jwt, id:groupId });
       if (!response) {
+        setIsJoined(true);
         return;
       } else {
-        setIsJoined(true);
       }
     } catch (error) {
       console.log(error);
@@ -250,6 +251,8 @@ function GroupInformation() {
       <GroupDescription description={groupData[0].information.bio} />
       {isJoined && (
         <GroupTabs
+        groupId={id
+        }
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           toggleChatModal={toggleChatModal}

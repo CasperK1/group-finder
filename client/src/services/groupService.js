@@ -70,14 +70,16 @@ export const leaveGroup = async (req) => {
   }
 };
 
-export const getGroupFiles = async (token, id) => {
+export const getGroupFiles = async (req) => {
+  console.log(req);
+  
   try {
-    const url = `${apiGroupFilesURL}/${id}`;
-
-    const response = await axios.get(url, {
+    const url = `${apiGroupFilesURL}/${req.id}`;
+    const response = await fetch(url, {
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
       },
     });
 
