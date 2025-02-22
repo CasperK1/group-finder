@@ -1,28 +1,20 @@
 import '../../index.css';
 import { useState, useEffect } from 'react';
 import { apiService } from '../../services/api/apiService';
-import { GroupHeader, GroupLocation, GroupDescription, GroupFooter } from '../Group/GroupInformation';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
+import { GroupHeader } from '../Group/GroupHeader';
+import { GroupLocation } from '../Group/GroupLocation';
+import { GroupDescription } from '../Group/GroupDescription';
+import { GroupFooter } from '../Group/GroupFooter';
+import { useNavigate } from 'react-router-dom';
 import { convertDate } from '../../utils/date';
-const groupsData = [
-  { id: 1, name: 'Group 1', category: 'Software Engineering', icon: '📘' },
-  { id: 2, name: 'Group 2', category: 'Software Engineering', icon: '📘' },
-  { id: 3, name: 'Group 3', category: 'Health Tech', icon: '🔤' },
-  { id: 4, name: 'Group 4', category: 'Software Engineering', icon: '🎯' },
-  { id: 5, name: 'Group 5', category: 'Software Engineering', icon: '🌐' },
-  { id: 6, name: 'Group 6', category: 'Software Engineering', icon: '🏠' },
-  { id: 7, name: 'Group 7', category: 'Health Tech', icon: '📒' },
-  { id: 8, name: 'Group 8', category: 'Health Tech', icon: '➕' },
-  { id: 9, name: 'Group 9', category: 'Software Engineering', icon: '📘' },
-];
 
 function GroupsList() {
   const [groupData, setGroupData] = useState([]);
   const jwt = localStorage.getItem('jwtToken');
   const [selectedGroupId, setSelectedGroupId] = useState(null);
-  const navigate = useNavigate(); // Initialize the navigate function
+  const navigate = useNavigate();
   const handleGroupSelect = (groupId) => {
-    setSelectedGroupId(groupId); // Set the selected group ID
+    setSelectedGroupId(groupId); 
     console.log(groupId);
     navigate(`/group/${groupId}`)
   };
@@ -35,7 +27,7 @@ function GroupsList() {
         console.log('Token:', jwt);
         if (!jwt) return;
         
-        const response = await apiService.getGroupInformationData({ token: jwt });
+        const response = await apiService.group.getAllGroups({ token: jwt });
         if (!response) {
           console.log('No data received');
           return;
@@ -55,7 +47,7 @@ function GroupsList() {
       {groupData.map((group) => (
         <div
           key={group._id}
-          className={`bg-white w-xs h-auto p-4 rounded-xl shadow-md relative ${
+          className={`bg-white w-md h-auto p-4 rounded-xl shadow-md relative ${
             selectedGroupId === group._id ? 'bg-blue-100' : ''
           }`}
           onClick={() => handleGroupSelect(group._id)}

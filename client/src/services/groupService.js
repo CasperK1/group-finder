@@ -3,9 +3,35 @@ import axios from 'axios';
 const apiGroupURL = 'http://localhost:3000/api/groups';
 const apiGroupFilesURL = 'http://localhost:3000/api/files/group';
 
-export const getGroupInformationData = async (token, id = null) => {
+export const getAllGroups = async (token) => {
   try {
-    const url = id ? `${apiGroupURL}/${id}` : apiGroupURL;
+    const url =  apiGroupURL;
+
+    const response = await axios.get(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.status !== 200) {
+      console.error(`Error! Status: ${response.status}`);
+      return null;
+    }
+    console.log('Get group data process is successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching group data:', error.response ? error.response.data : error.message);
+    return null;
+  }
+};
+
+export const getGroupInformationData = async ({token, groupId }) => {
+  console.log(token);
+  
+  console.log('idhewew', groupId);
+  
+  try {
+    const url = `${apiGroupURL}/${groupId}`
 
     const response = await axios.get(url, {
       headers: {
@@ -71,8 +97,6 @@ export const leaveGroup = async (req) => {
 };
 
 export const getGroupFiles = async (req) => {
-  console.log(req);
-  
   try {
     const url = `${apiGroupFilesURL}/${req.id}`;
     const response = await fetch(url, {
