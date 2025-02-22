@@ -1,10 +1,9 @@
 // TODO:
-// Only group owner can edit group information / delete the group
+// Group owner can either delete the group or transfer ownership to other user
 // Function to add moderators (only for the owner?)
 // Function to kick members out of groups (only for owner/moderators)
 // Function to send group invites to users (only for owner/moderators)
-// Removing user from group also removes them from moderator list (What to do when owner leaves the group?)
-// Deleting the group also removes the group ID from all users' groupsJoined array
+// Removing user from group also removes them from moderator list
 
 const Group = require("../models/Group");
 const User = require("../models/User");
@@ -67,6 +66,8 @@ const getGroupInformation = async (req, res) => {
 
 // POST /api/groups
 const createGroup = async (req, res) => {
+    const userId = req.user.id;
+
     try {
         const {
             name,
@@ -99,6 +100,11 @@ const createGroup = async (req, res) => {
             documents: [],
             events: []
         });
+
+        // Add the group ID to the user's groupsJoined array
+        const user = await User.findById(userId);
+        user.groupsJoined.push(group._id);
+        
         const newGroup = await group.save();
 
         res.status(201).json(newGroup);
@@ -110,6 +116,7 @@ const createGroup = async (req, res) => {
 // PUT /api/groups/:groupId
 const updateGroup = async (req, res) => {
     const groupId = req.params.groupId;
+    const userId = req.user.id
     const updates = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(groupId)) {
@@ -121,21 +128,26 @@ const updateGroup = async (req, res) => {
     }
 
     try {
-        const existingGroup = await Group.findById(groupId);
-        if (!existingGroup) {
+        const group = await Group.findById(groupId);
+
+        if (!group) {
             return res.status(404).json({ message: "Group not found" });
+        }
+
+        if (userId !== group.owner) {
+            return res.status(400).json({ message: "Only the group owner can edit group information!" })
         }
 
         if (updates.information) {
             updates.information = {
-                ...existingGroup.information.toObject(),
+                ...group.information.toObject(),
                 ...updates.information
             };
         }
 
         if (updates.settings) {
             updates.settings = {
-                ...existingGroup.settings.toObject(),
+                ...group.settings.toObject(),
                 ...updates.settings
             };
         }
@@ -144,6 +156,7 @@ const updateGroup = async (req, res) => {
             new: true,
             runValidators: true
         });
+
         res.status(200).json(updatedGroup);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -232,13 +245,28 @@ const leaveGroup = async (req, res) => {
 // DELETE /groups/:groupId
 const deleteGroup = async (req, res) => {
     const groupId = req.params.groupId;
+    const userId = req.user.id;
 
     if (!mongoose.Types.ObjectId.isValid(groupId)) {
         return res.status(400).json({ message: "Invalid group ID" });
     }
 
     try {
-        const deletedGroup = await Group.findOneAndDelete({ _id: groupId });
+        const group = await Group.findById(groupId);
+
+        // Check if the current user is the owner of the group
+        if (userId !== group.owner) {
+            return res.status(400).json({ message: "Only the group owner can delete the group!" })
+        }
+
+        // Remove the group from all the members' groupsJoined arrays
+        await Group.updateMany(
+            {groupsJoined: groupId},
+            {$pull: {groupsJoined: groupId}}
+        );
+
+        const deletedGroup = await Group.findOneAndDelete(groupId);
+
         if (deletedGroup) {
             res.status(204).json({ message: "Group deleted" });
         } else {
