@@ -8,7 +8,9 @@ const {
     updateGroup,
     joinGroup,
     leaveGroup,
-    deleteGroup
+    deleteGroup,
+    addModerator,
+    removeModerator
 } = require("../controllers/groupControllers")
 
 // Public routes
@@ -19,8 +21,10 @@ router.get("/:groupId", getGroupInformation);
 router.get("/auth/:groupId", auth, getGroupInformation);
 router.post("/", auth, createGroup);
 router.put("/:groupId", auth, updateGroup);
-router.put("/:groupId/join", auth, joinGroup);
-router.put("/:groupId/leave", auth, leaveGroup);
+router.put("/join/:groupId", auth, joinGroup);
+router.put("/leave/:groupId", auth, leaveGroup);
 router.delete("/:groupId", auth, deleteGroup);
+router.put("/addMod/:groupId", auth, addModerator);
+router.put("/removeMod/:groupId", auth, removeModerator);
 
 module.exports = router;
