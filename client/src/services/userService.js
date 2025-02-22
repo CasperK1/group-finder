@@ -1,13 +1,13 @@
 const apiUserURL = 'http://localhost:3000/api/users/';
-
-export const getAllUsers = async (req) => {
+import axios from "axios";
+export const getAllUsers = async (token) => {
     try {
+      // const url = `${apiUserURL}/profile/67b9c0852776e7ca17b7d38a`;
       const url = `${apiUserURL}`;
-      const response = await fetch(url, {
-        method: "GET",
+      const response = await axios.get(url, {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${req.token}`,
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
       });
   

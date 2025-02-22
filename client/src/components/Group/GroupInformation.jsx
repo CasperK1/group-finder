@@ -14,11 +14,10 @@ function GroupInformation() {
   const [isJoined, setIsJoined] = useState(false);
   const [activeTab, setActiveTab] = useState('Documents');
   const [isChatOpen, setIsChatOpen] = useState(false);
-  console.log(id);
-
+  const [allUsers, setAllUsers] = useState([]);
+  const jwt = localStorage.getItem('jwtToken');
+  
   useEffect(() => {
-    const jwt = localStorage.getItem('jwtToken');
-
     const fetchGroupData = async () => {
       try {
         const response = await apiService.group.getGroupInformationData({ token: jwt, groupId: id });
@@ -34,7 +33,22 @@ function GroupInformation() {
 
     fetchGroupData();
   }, [id]);
-  console.log(groupData);
+
+    useEffect(() => {
+      const fetchAllUsers = async () => {
+        try {
+          const response = await apiService.user.getAllUsers({ token: jwt });
+          if (response) {
+            setAllUsers(response);
+          } else {
+            console.log('No data received');
+          }
+        } catch (error) {
+          console.error('Error fetching users data:', error);
+        }
+      };
+      fetchAllUsers();
+    }, [id, groupData]);
 
   if (!groupData) {
     return <div>Loading...</div>;
@@ -79,13 +93,28 @@ function GroupInformation() {
     setIsChatOpen(!isChatOpen);
   };
 
+  let groupUsers = [];
+
+  if (allUsers && Array.isArray(allUsers)) {
+    console.log(allUsers);
+    console.log(groupData.members);
+    
+    groupUsers = allUsers.map((user) => console.log
+    (user._id));
+    groupUsers = allUsers.filter((user) => groupData.members.includes(user._id));
+    console.log('dfdsfdsfsdf',groupUsers);
+    
+  } else {
+    groupUsers = [];  
+  }
+
+  
   return (
     <div className="bg-white w-full p-8 rounded-xl shadow-md relative overflow-y-auto">
       <GroupHeader
+        groupUsers={groupUsers}
         groupInfo={true}
-        groupName={groupData.information.name}
-        major={groupData.information.major}
-        user={groupData.members}
+        groupData={groupData} 
       />
       <GroupLocation
         groupInfo={true}
@@ -96,6 +125,7 @@ function GroupInformation() {
       <GroupDescription description={groupData.information.bio} />
       {isJoined && (
         <GroupTabs
+          groupUsers = {groupUsers}
           groupId={id}
           activeTab={activeTab}
           setActiveTab={setActiveTab}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiGroupURL = 'http://localhost:3000/api/groups';
-const apiGroupFilesURL = 'http://localhost:3000/api/files/group';
+const apiGroupFilesURL = 'http://localhost:3000/api/files/';
 
 export const getAllGroups = async (token) => {
   try {
@@ -96,14 +96,17 @@ export const leaveGroup = async (req) => {
   }
 };
 
-export const getGroupFiles = async (req) => {
+export const getGroupFiles = async ({token, id}) => {
+  console.log(token,'fsdfsdfsdfdsfd');
+  console.log(id);
+  
   try {
-    const url = `${apiGroupFilesURL}/${req.id}`;
+    const url = `${apiGroupFilesURL}/group/${id}`;
     const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${req.token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 

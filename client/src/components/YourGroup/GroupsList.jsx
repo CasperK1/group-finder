@@ -20,10 +20,8 @@ function GroupsList() {
   };
 
   useEffect(() => {
-    console.log('Fetching group data...');
     const fetchGroupData = async () => {
       try {
-        const jwt = localStorage.getItem('jwtToken');
         console.log('Token:', jwt);
         if (!jwt) return;
         
@@ -41,7 +39,8 @@ function GroupsList() {
   
     fetchGroupData();
   }, [])
-
+  console.log(groupData,'herrrrrrrr');
+  
   return (
     <div className="groups-container">
       {groupData.map((group) => (
@@ -52,7 +51,7 @@ function GroupsList() {
           }`}
           onClick={() => handleGroupSelect(group._id)}
         >
-          <GroupHeader groupName={group.information.name} />
+          <GroupHeader groupData={group} groupName={group.information.name}  />
           <GroupLocation
             year={convertDate(group.createdAt).year}
             city={group.information.city}
@@ -60,7 +59,7 @@ function GroupsList() {
           />
           <GroupDescription description={group.information.bio} />
         
-        <GroupFooter date= {convertDate(groupData[0].createdAt).formattedDate}
+        <GroupFooter date= {convertDate(group.createdAt).formattedDate}
       />
         </div>
       ))}

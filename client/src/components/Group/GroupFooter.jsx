@@ -1,3 +1,22 @@
+import { useState } from "react";
+const Button = ({ onClick, text, className, icon }) => {
+  const [isActive, setIsActive] = useState(false);
+
+  const handleClick = () => {
+    setIsActive(!isActive);
+    if (onClick) onClick(); 
+  };
+
+  return (
+    <button
+      className={`${className} btn border-none shadow-none rounded-xl 
+      `}
+      onClick={handleClick}
+    >
+      {text}
+    </button>
+  );
+};
 export function GroupFooter({
   groupInfo,
   isJoinedGroup,
@@ -7,14 +26,6 @@ export function GroupFooter({
   handleSaveGroup,
   handleLeaveGroup,
 }) {
-  const Button = ({ onClick, text, className }) => (
-    <button
-      className={`${className} transition transform duration-200 hover:scale-105 active:scale-95 btn btn-active btn-neutral`}
-      onClick={onClick}
-    >
-      {text}
-    </button>
-  );
 
   const renderJoinButton = () => (
     <div className="flex items-center justify-between mb-4 px-4">

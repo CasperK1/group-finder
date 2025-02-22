@@ -1,6 +1,6 @@
 
 @import "tailwindcss";
-
+@plugin "daisyui";
 /* Global Parent */
 body, html {
     margin: 0;
