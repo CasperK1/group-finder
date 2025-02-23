@@ -22,7 +22,7 @@ function Layout() {
       <Navbar />
       <div className="content-layout">
         {isDashboard && (
-          <div className="main-container-1">
+          <div className="main-container-1 mr-8">
             <Sidebar />
           </div>
         )}

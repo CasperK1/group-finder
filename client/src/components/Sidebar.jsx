@@ -14,7 +14,7 @@ const Sidebar = () => {
           Type of Study {showStudyType ? "-" : "+"}
         </h3>
         {showStudyType && (
-          <div className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+          <div className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full ">
             <label><input type="checkbox" /> Smart IoT Systems</label>
             <label><input type="checkbox" /> Software Engineering</label>
             <label><input type="checkbox" /> Health Tech</label>
@@ -31,7 +31,7 @@ const Sidebar = () => {
           Year of Study {showYearStudy ? "-" : "+"}
         </h3>
         {showYearStudy && (
-          <div className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+          <div className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full">
             <label><input type="checkbox" /> First Year</label>
             <label><input type="checkbox" /> Second Year</label>
             <label><input type="checkbox" /> Third Year</label>
