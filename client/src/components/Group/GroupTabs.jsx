@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiService } from '../../services/api/apiService';
-import { ChatApp } from './ChatApp';
+import { ChatApp } from '../ChatApp/ChatApp';
+
 export function GroupTabs({ groupUsers, groupId, activeTab, setActiveTab, toggleChatModal, isChatOpen, isJoined }) {
   const [groupFiles, setGroupFiles] = useState(null);
   useEffect(() => {
