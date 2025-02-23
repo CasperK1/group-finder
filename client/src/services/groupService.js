@@ -6,7 +6,6 @@ const apiGroupFilesURL = 'http://localhost:3000/api/files/';
 export const getAllGroups = async (token) => {
   try {
     const url =  apiGroupURL;
-
     const response = await axios.get(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -26,10 +25,6 @@ export const getAllGroups = async (token) => {
 };
 
 export const getGroupInformationData = async ({token, groupId }) => {
-  console.log(token);
-  
-  console.log('idhewew', groupId);
-  
   try {
     const url = `${apiGroupURL}/${groupId}`
 
@@ -96,17 +91,18 @@ export const leaveGroup = async (req) => {
   }
 };
 
-export const getGroupFiles = async ({token, id}) => {
-  console.log(token,'fsdfsdfsdfdsfd');
+export const getGroupFiles = async (req) => {
+  console.log('dfasfasdasdasd',token)
   console.log(id);
+  ;
   
   try {
-    const url = `${apiGroupFilesURL}/group/${id}`;
+    const url = `${apiGroupFilesURL}/group/${req.id}`;
     const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${req.token}`,
       },
     });
 

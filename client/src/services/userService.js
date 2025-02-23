@@ -34,7 +34,7 @@ export const getUserProfile = async (req) => {
         Authorization: `Bearer ${req.token}`,
       },
     });
-
+    
     if (response.status !== 200) {
       console.error(`Error! Status: ${response.status}`);
       return null;
@@ -47,3 +47,28 @@ export const getUserProfile = async (req) => {
     return null;
   }
 };
+export const getGroupJoined = async (req) => {
+  try {
+    const url = `${apiUserURL}/groups/joined`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${req.token}`,
+      },
+    });
+    console.log('process', response);
+
+    if (response.status !== 200) {
+      console.error(`Error! Status: ${response.status}`);
+      return null;
+    }
+
+    console.log('Get user group process is successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user:', error.response ? error.response.data : error.message);
+    return null;
+  }
+};
+// router.get("/groups/joined", auth, getJoinedGroups);

@@ -9,7 +9,7 @@ export function GroupHeader({ groupUsers, groupInfo, groupData }) {
         <img src={groupData.information.photo} alt="Group logo" className="w-full h-auto rounded-full p-2" />
       </div>
 
-      <div className={groupInfo ? 'ml-8 space-y-2' : 'ml-4 space-y-2'}>
+      <div className={groupInfo ? 'ml-8 space-y-2 h-50' : 'ml-4 space-y-2 h-20'}>
         <h2 className="text-xl font-semibold text-blue-500">{groupData.information.name}</h2>
         {groupInfo && (
           <p className="text-blue-500">

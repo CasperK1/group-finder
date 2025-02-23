@@ -1,13 +1,13 @@
-import React from 'react';
+import { useContext } from "react";
 import InputField from './InputField';
 import PasswordField from './PasswordField';
 import { useNavigate } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { apiService } from '../../services/api/apiService';
-
+import { AuthContext } from "../../provider/AuthProvider";
 function Form() {
   const navigate = useNavigate();
-
+  const { login } = useContext(AuthContext);
   const {
     control,
     handleSubmit,
@@ -20,8 +20,8 @@ function Form() {
       console.error('Error: Invalid response or token missing.');
     } else {
       localStorage.setItem('jwtToken', response.token);
-      console.log('Token saved successfully.');
-
+      login(response);
+      console.log('Token saved successfully.')
       navigate('/');
     }
   };

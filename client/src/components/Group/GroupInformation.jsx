@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { apiService } from '../../services/api/apiService';
 import { useParams } from 'react-router-dom';
 import { convertDate } from '../../utils/date';
@@ -7,7 +7,7 @@ import { GroupLocation } from './GroupLocation';
 import { GroupDescription } from './GroupDescription';
 import { GroupTabs } from './GroupTabs';
 import { GroupFooter } from './GroupFooter';
-
+import { AuthContext } from '../../provider/AuthProvider';
 function GroupInformation() {
   const { id } = useParams();
   const [groupData, setGroupData] = useState(null);
@@ -16,7 +16,7 @@ function GroupInformation() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
   const jwt = localStorage.getItem('jwtToken');
-  
+  const { user } = useContext(AuthContext);
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
@@ -32,23 +32,31 @@ function GroupInformation() {
     };
 
     fetchGroupData();
-  }, [id]);
+  }, [id, isJoined]);
 
-    useEffect(() => {
-      const fetchAllUsers = async () => {
-        try {
-          const response = await apiService.user.getAllUsers({ token: jwt });
-          if (response) {
-            setAllUsers(response);
-          } else {
-            console.log('No data received');
-          }
-        } catch (error) {
-          console.error('Error fetching users data:', error);
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const response = await apiService.user.getAllUsers({ token: jwt });
+        if (response) {
+          setAllUsers(response);
+        } else {
+          console.log('No data received');
         }
-      };
-      fetchAllUsers();
-    }, [id, groupData]);
+      } catch (error) {
+        console.error('Error fetching users data:', error);
+      }
+    };
+    fetchAllUsers();
+  }, [isJoined]);
+
+  useEffect(() => {
+    if (groupData) {
+      const checkUserBelongGroup = groupData.members.includes(user.userId);
+      setIsJoined(checkUserBelongGroup);
+      
+    }
+  }, [user, groupData, isJoined]);
 
   if (!groupData) {
     return <div>Loading...</div>;
@@ -56,12 +64,14 @@ function GroupInformation() {
 
   const handleJoinGroup = async (groupId) => {
     try {
-      const jwt = localStorage.getItem('jwtToken');
+      if (isJoined) {
+        return;
+      }
       const response = await apiService.group.joinGroup({ token: jwt, id: groupId });
       if (!response) {
-        setIsJoined(true);
         return;
       } else {
+        setIsJoined(true); 
       }
     } catch (error) {
       console.log(error);
@@ -75,10 +85,12 @@ function GroupInformation() {
     console.log('Group is saved');
   };
 
-  const handleLeaveGroup = async () => {
+  const handleLeaveGroup = async (groupId) => {
     try {
-      const jwt = localStorage.getItem('jwtToken');
-      const response = await apiService.group.leaveGroup({ token: jwt, id });
+      if (!isJoined) {
+        return;
+      }
+      const response = await apiService.group.leaveGroup({ token: jwt, id:groupId});
       if (!response) {
         return;
       } else {
@@ -96,26 +108,14 @@ function GroupInformation() {
   let groupUsers = [];
 
   if (allUsers && Array.isArray(allUsers)) {
-    console.log(allUsers);
-    console.log(groupData.members);
-    
-    groupUsers = allUsers.map((user) => console.log
-    (user._id));
     groupUsers = allUsers.filter((user) => groupData.members.includes(user._id));
-    console.log('dfdsfdsfsdf',groupUsers);
-    
   } else {
-    groupUsers = [];  
+    groupUsers = [];
   }
 
-  
   return (
     <div className="bg-white w-full p-8 rounded-xl shadow-md relative overflow-y-auto">
-      <GroupHeader
-        groupUsers={groupUsers}
-        groupInfo={true}
-        groupData={groupData} 
-      />
+      <GroupHeader groupUsers={groupUsers} groupInfo={true} groupData={groupData} />
       <GroupLocation
         groupInfo={true}
         year={convertDate(groupData.createdAt).year}
@@ -125,7 +125,8 @@ function GroupInformation() {
       <GroupDescription description={groupData.information.bio} />
       {isJoined && (
         <GroupTabs
-          groupUsers = {groupUsers}
+          isJoined={isJoined}
+          groupUsers={groupUsers}
           groupId={id}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -142,7 +143,7 @@ function GroupInformation() {
         }}
         handleBlockGroup={handleBlockGroup}
         handleSaveGroup={handleSaveGroup}
-        handleLeaveGroup={handleLeaveGroup}
+        handleLeaveGroup={()=>{handleLeaveGroup(id)}}
       />
     </div>
   );

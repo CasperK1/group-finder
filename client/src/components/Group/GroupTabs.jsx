@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { apiService } from '../../services/api/apiService';
 import { ChatApp } from './ChatApp';
-export function GroupTabs({ groupUsers, groupId, activeTab, setActiveTab, toggleChatModal, isChatOpen }) {
+export function GroupTabs({ groupUsers, groupId, activeTab, setActiveTab, toggleChatModal, isChatOpen, isJoined }) {
   const [groupFiles, setGroupFiles] = useState(null);
-
   useEffect(() => {
     const jwt = localStorage.getItem('jwtToken');
-    const fetchGroupFiles = async () => {
-      try {
-        const response = await apiService.group.getGroupFiles({ token: jwt, id: groupId });
-        if (response) {
-          setGroupFiles(response);
-        } else {
-          console.log('No data received');
+    if(isJoined){
+      const fetchGroupFiles = async () => {
+        try {
+          const response = await apiService.group.getGroupFiles({token: jwt, id: groupId });
+          if (response) {
+            setGroupFiles(response);
+          } else {
+            console.log('No data received');
+          }
+        } catch (error) {
+          console.error('Error fetching group data:', error);
         }
-      } catch (error) {
-        console.error('Error fetching group data:', error);
-      }
-    };
-
-    fetchGroupFiles();
-  }, []);
+      };
+      fetchGroupFiles();
+    }
+  }, [isJoined, groupId]);
 
   return (
     <div className="mb-4">
@@ -51,8 +51,8 @@ export function GroupTabs({ groupUsers, groupId, activeTab, setActiveTab, toggle
       <div className="mt-4 p-4 bg-white rounded-b-lg shadow-sm">
         {activeTab === 'Documents' && <p className="text-gray-500">Here are your documents...</p>}
         {activeTab === 'Members' &&
-          groupUsers.map((user) => (
-            <div className="flex items-center space-x-2 mb-2">
+          groupUsers.map((user, index) => (
+            <div  key={index} className="flex items-center space-x-2 mb-2">
               <div className="avatar">
                 <div className="w-12 rounded-full">
                   <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />

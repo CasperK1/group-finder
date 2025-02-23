@@ -1,9 +1,10 @@
 import React from 'react';
+import { AuthProvider } from './provider/AuthProvider';
+import ProtectedRoute from './ProtectedRoute';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
 import Login from './page/Login';
 import SignUp from './page/SignUp';
 import Reset from './page/Reset';
-import HeaderSection from './components/YourGroup/HeaderSection';
 import GroupsList from './components/YourGroup/GroupsList';
 import YourGroups from './page/YourGroups';
 import AboutPage from './page/About';
@@ -12,10 +13,9 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import GroupInformation from './components/Group/GroupInformation';
 
-// Layout Component for pages with Sidebar & Navbar
 function Layout() {
   const location = useLocation();
-  const isDashboard = location.pathname.startsWith("/"); // Show sidebar on dashboard pages
+  const isDashboard = location.pathname.startsWith('/');
 
   return (
     <div className="app-container">
@@ -26,7 +26,7 @@ function Layout() {
             <Sidebar />
           </div>
         )}
-        <div className={isDashboard ? "main-container-2" : "full-width-container"}>
+        <div className={isDashboard ? 'main-container-2' : 'full-width-container'}>
           <Outlet />
         </div>
       </div>
@@ -34,18 +34,16 @@ function Layout() {
   );
 }
 
-// Define Routes
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Layout />, 
+    element: <Layout />,
     children: [
       {
-        index: true, // Default child route
+        index: true, 
         element: (
           <>
-            <HeaderSection />
-            <GroupsList />
+            <GroupsList allGroup={true}/>
           </>
         ),
       },
@@ -59,11 +57,19 @@ const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        element: <SettingsPage />,
+        element: (
+          <ProtectedRoute>
+            <SettingsPage />,
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'group/:id',
-        element: <GroupInformation />,
+        element: (
+          <ProtectedRoute>
+            <GroupInformation />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
@@ -82,7 +88,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
 
 export default App;
