@@ -1,11 +1,9 @@
-import React from "react";
-import HeaderSection from "../components/YourGroup/HeaderSection";
-import GroupsList from "../components/YourGroup/GroupsList";
+import React from 'react';
+import GroupsList from '../components/YourGroup/GroupsList';
 const YourGroups = () => {
   return (
     <div className="your-groups-container">
-      <HeaderSection />
-      <GroupsList />
+      <GroupsList allGroup={false} ownGroup={true} />
     </div>
   );
 };

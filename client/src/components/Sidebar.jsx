@@ -5,14 +5,16 @@ const Sidebar = () => {
   const [showYearStudy, setShowYearStudy] = useState(false);
 
   return (
-    <aside className="sidebar">
-      {/* Type of Study Dropdown */}
-      <div className="dropdown">
-        <h3 onClick={() => setShowStudyType(!showStudyType)} className="dropdown-title">
+    <aside className="sidebar p-4 bg-base-200 rounded-lg shadow-md w-64">
+      <div className="mb-4">
+        <h3
+          onClick={() => setShowStudyType(!showStudyType)}
+          className="text-lg font-semibold cursor-pointer"
+        >
           Type of Study {showStudyType ? "-" : "+"}
         </h3>
         {showStudyType && (
-          <div className="dropdown-content">
+          <div className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full ">
             <label><input type="checkbox" /> Smart IoT Systems</label>
             <label><input type="checkbox" /> Software Engineering</label>
             <label><input type="checkbox" /> Health Tech</label>
@@ -21,14 +23,15 @@ const Sidebar = () => {
           </div>
         )}
       </div>
-
-      {/* Year of Study Dropdown */}
-      <div className="dropdown">
-        <h3 onClick={() => setShowYearStudy(!showYearStudy)} className="dropdown-title">
+      <div>
+        <h3
+          onClick={() => setShowYearStudy(!showYearStudy)}
+          className="text-lg font-semibold cursor-pointer"
+        >
           Year of Study {showYearStudy ? "-" : "+"}
         </h3>
         {showYearStudy && (
-          <div className="dropdown-content">
+          <div className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full">
             <label><input type="checkbox" /> First Year</label>
             <label><input type="checkbox" /> Second Year</label>
             <label><input type="checkbox" /> Third Year</label>

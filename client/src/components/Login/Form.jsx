@@ -1,13 +1,13 @@
-import React from 'react';
+import { useContext } from "react";
 import InputField from './InputField';
 import PasswordField from './PasswordField';
 import { useNavigate } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { apiService } from '../../services/api/apiService';
-
+import { AuthContext } from "../../provider/AuthProvider";
 function Form() {
   const navigate = useNavigate();
-
+  const { login } = useContext(AuthContext);
   const {
     control,
     handleSubmit,
@@ -15,13 +15,13 @@ function Form() {
   } = useForm();
 
   const onSubmit = async (data) => {
-    const response = await apiService.handleLogin(data);
+    const response = await apiService.auth.handleLogin(data);
     if (!response) {
       console.error('Error: Invalid response or token missing.');
     } else {
       localStorage.setItem('jwtToken', response.token);
-      console.log('Token saved successfully.');
-
+      login(response);
+      console.log('Token saved successfully.')
       navigate('/');
     }
   };
@@ -52,7 +52,7 @@ function Form() {
         rules={{
           required: 'Password is required',
           minLength: {
-            value: 8,
+            value: 6,
             message: 'Password must be at least 8 characters long',
           },
           pattern: {

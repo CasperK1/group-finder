@@ -1,6 +1,6 @@
 
 @import "tailwindcss";
-
+@plugin "daisyui";
 /* Global Parent */
 body, html {
     margin: 0;
@@ -191,7 +191,6 @@ body, html {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
-    justify-content: center;
   }
   
   /* Cards with Max 3 Side-by-Side */

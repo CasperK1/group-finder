@@ -16,7 +16,7 @@ function SignUpForm() {
   const [isModalVisible, setModalVisible] = useState(false);
 
   const onSubmit = async (data) => {
-    const response = await apiService.handleRegister(data);
+    const response = await apiService.auth.handleRegister(data);
     if (!response) {
       setModalMessage('Registration failed. Please try again.');
       setModalVisible(true);
