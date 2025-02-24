@@ -10,7 +10,9 @@ const {
     leaveGroup,
     deleteGroup,
     addModerator,
-    removeModerator
+    removeModerator,
+    changeOwner,
+    kickMember
 } = require("../controllers/groupControllers")
 
 // Public routes
@@ -26,5 +28,7 @@ router.put("/leave/:groupId", auth, leaveGroup);
 router.delete("/:groupId", auth, deleteGroup);
 router.put("/addMod/:groupId", auth, addModerator);
 router.put("/removeMod/:groupId", auth, removeModerator);
+router.put("/owner/:groupId", auth, changeOwner);
+router.put("/kick/:groupId", auth, kickMember);
 
 module.exports = router;
