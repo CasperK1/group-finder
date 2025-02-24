@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.IO Tester</title>
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .panel {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 15px;
+      background-color: #f9f9f9;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+    button {
+      padding: 8px 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button.danger {
+      background-color: #f44336;
+    }
+    button.danger:hover {
+      background-color: #d32f2f;
+    }
+
+    input, textarea, select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    textarea {
+      min-height: 100px;
+      width: 100%;
+      font-family: monospace;
+    }
+    #events {
+      height: 300px;
+      overflow-y: auto;
+      background-color: #f5f5f5;
+      padding: 10px;
+      border: 1px solid #ddd;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    .flex-grow {
+      flex-grow: 1;
+    }
+    .event-templates button {
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+    .status {
+      font-weight: bold;
+    }
+    .status.connected {
+      color: green;
+    }
+    .status.disconnected {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Socket.IO Tester</h1>
+
+    <div class="panel">
+      <h2>Authentication</h2>
+      <div class="row">
+        <div class="flex-grow">
+          <p>Connection Status: <span id="connectionStatus" class="status disconnected">Disconnected</span></p>
+          <div class="row">
+            <input id="apiUrl" value="http://localhost:3000" placeholder="API URL" />
+          </div>
+        </div>
+        <div>
+          <p>Current Token:</p>
+          <textarea id="jwtToken" placeholder="JWT token will appear here"></textarea>
+          <div class="row">
+            <button onclick="connect()">Connect Socket</button>
+            <button onclick="disconnect()" class="danger">Disconnect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Send Events</h2>
+      <div class="row">
+        <div class="flex-grow">
+          <input id="eventName" placeholder="Event name" style="width: 100%;" />
+          <textarea id="eventData" placeholder="Event data (JSON)"></textarea>
+        </div>
+        <div>
+          <button onclick="emitEvent()">Emit Event</button>
+          <div class="event-templates">
+            <h3>Event Templates</h3>
+            <button onclick="fillEventTemplate('group:join')">Join Group</button>
+            <button onclick="fillEventTemplate('message:group')">Group Message</button>
+            <button onclick="fillEventTemplate('message:direct')">Direct Message</button>
+            <button onclick="fillEventTemplate('typing:start')">Start Typing</button>
+            <button onclick="fillEventTemplate('typing:stop')">Stop Typing</button>
+            <button onclick="fillEventTemplate('messages:history')">Load History</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Events Received</h2>
+      <button onclick="clearEvents()">Clear Events</button>
+      <pre id="events"></pre>
+    </div>
+  </div>
+
+  <script>
+    let socket;
+    const eventsEl = document.getElementById('events');
+    const connectionStatusEl = document.getElementById('connectionStatus');
+    const apiUrl = document.getElementById('apiUrl');
+    const jwtTokenEl = document.getElementById('jwtToken');
+
+
+    // Get JWT token for selected user
+    async function getTokenForUser(userId) {
+      const url = `${apiUrl.value}/api/auth/test-token?userId=${userId}`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.token) {
+          jwtTokenEl.value = data.token;
+          addEvent(`Got token for user: ${data.username} (${data.userId})`);
+        } else {
+          alert('No token received');
+        }
+      } catch (error) {
+        alert(`Error getting token: ${error.message}`);
+      }
+    }
+
+    // Socket connection
+    function connect() {
+      const token = jwtTokenEl.value.trim();
+      if (!token) {
+        alert('Please get a JWT token first');
+        return;
+      }
+
+      // Disconnect existing socket if any
+      if (socket && socket.connected) {
+        socket.disconnect();
+      }
+
+      socket = io(apiUrl.value, {
+        auth: { token }
+      });
+
+      socket.on('connect', () => {
+        connectionStatusEl.textContent = 'Connected';
+        connectionStatusEl.className = 'status connected';
+        addEvent('Connected to server');
+      });
+
+      socket.on('disconnect', () => {
+        connectionStatusEl.textContent = 'Disconnected';
+        connectionStatusEl.className = 'status disconnected';
+        addEvent('Disconnected from server');
+      });
+
+      socket.on('connect_error', (err) => {
+        connectionStatusEl.textContent = 'Error: ' + err.message;
+        connectionStatusEl.className = 'status disconnected';
+        addEvent(`Connection error: ${err.message}`);
+      });
+
+      socket.on('message:bot')
+      socket.on('message:group')
+
+      // Listen for all events
+      socket.onAny((event, ...args) => {
+        addEvent(`${event}: ${JSON.stringify(args, null, 2)}`);
+      });
+    }
+
+    function disconnect() {
+      if (socket) {
+        socket.disconnect();
+        connectionStatusEl.textContent = 'Disconnected';
+        connectionStatusEl.className = 'status disconnected';
+        addEvent('Disconnected from server');
+      }
+    }
+
+    function emitEvent() {
+      if (!socket || !socket.connected) {
+        alert('Not connected to server');
+        return;
+      }
+
+      const eventName = document.getElementById('eventName').value;
+      const eventDataStr = document.getElementById('eventData').value;
+
+      if (!eventName) {
+        alert('Please enter an event name');
+        return;
+      }
+
+      let eventData;
+      try {
+        eventData = eventDataStr ? JSON.parse(eventDataStr) : {};
+      } catch (err) {
+        alert('Invalid JSON data');
+        return;
+      }
+
+      socket.emit(eventName, eventData);
+      addEvent(`Emitted: ${eventName} - ${JSON.stringify(eventData, null, 2)}`);
+    }
+
+    function addEvent(text) {
+      const time = new Date().toLocaleTimeString();
+      eventsEl.innerHTML += `[${time}] ${text}\n\n`;
+      eventsEl.scrollTop = eventsEl.scrollHeight;
+    }
+
+    function clearEvents() {
+      eventsEl.innerHTML = '';
+    }
+
+    // Fill event templates
+    function fillEventTemplate(eventType) {
+      const eventNameEl = document.getElementById('eventName');
+      const eventDataEl = document.getElementById('eventData');
+
+      eventNameEl.value = eventType;
+
+      let data = {};
+
+      switch(eventType) {
+        case 'group:join':
+          data = {
+            groupId: "64f5a39e8c8d1a8e94b9f123" // Replace with actual group ID
+          };
+          break;
+        case 'message:group':
+          data = {
+            groupId: "64f5a39e8c8d1a8e94b9f123", // Replace with actual group ID
+            content: "Hello everyone in the group!"
+          };
+          break;
+        case 'message:direct':
+          data = {
+            recipientId: "64f5a39e8c8d1a8e94b9f456", // Replace with actual user ID
+            content: "Hello, this is a direct message."
+          };
+          break;
+        case 'typing:start':
+          data = {
+            groupId: "64f5a39e8c8d1a8e94b9f123" // Replace with actual group ID
+          };
+          break;
+        case 'typing:stop':
+          data = {
+            groupId: "64f5a39e8c8d1a8e94b9f123" // Replace with actual group ID
+          };
+          break;
+        case 'messages:history':
+          data = {
+            groupId: "64f5a39e8c8d1a8e94b9f123", // Replace with actual group ID
+            limit: 20
+          };
+          break;
+      }
+
+      eventDataEl.value = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
