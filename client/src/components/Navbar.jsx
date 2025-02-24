@@ -2,11 +2,17 @@ import { Link } from "react-router-dom";
 import logo from "../assets/Groupfinderlogo.png";
 
 function Navbar() {
+  //  Still has placeholder User Data 
+  const user = {
+    displayName: "Ben Dover", 
+    photoURL: "https://via.placeholder.com/50", 
+  };
+
   return (
     <nav className="flex justify-between items-center w-full bg-white py-4 px-6 shadow-md">
       {/* Logo */}
       <div className="flex items-center">
-        <img src={logo} alt="Group Finder Logo"/>
+        <img src={logo} alt="Group Finder Logo" />
       </div>
 
       {/* Navigation Links */}
@@ -43,12 +49,15 @@ function Navbar() {
         </li>
       </ul>
 
-      {/* User Settings Button */}
-      <Link 
-        to="/settings" 
-        className="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
-      >
-        👤 User/Settings
+      {/* User Profile Section */}
+      <Link to="/settings" className="flex items-center space-x-3 bg-white p-2 rounded-lg hover:shadow-md transition">
+        <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-300">
+          <img src={user.photoURL} alt="User Profile" className="w-full h-full object-cover" />
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-600">Hello!</p>
+          <p className="text-md font-semibold text-gray-900">{user.displayName}</p>
+        </div>
       </Link>
     </nav>
   );
