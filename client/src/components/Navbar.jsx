@@ -1,19 +1,55 @@
 import { Link } from "react-router-dom";
 import logo from "../assets/Groupfinderlogo.png";
-import "../index.css";
 
 function Navbar() {
   return (
-    <nav className="navbar full-width">
-      <div className="logo-container">
-        <img src={logo} alt="Group Finder Logo" className="logo-img" />
+    <nav className="flex justify-between items-center w-full bg-white py-4 px-6 shadow-md">
+      {/* Logo */}
+      <div className="flex items-center">
+        <img src={logo} alt="Group Finder Logo"/>
       </div>
-      <ul className="nav-links">
-        <li><Link to="/" className="nav-link">Groups</Link></li>
-        <li><Link to="/your-groups" className="nav-link">Your Groups</Link></li>
-        <li><Link to="/about" className="nav-link">About</Link></li>
+
+      {/* Navigation Links */}
+      <ul className="flex space-x-8">
+        <li>
+          <Link 
+            to="/" 
+            className="relative text-gray-800 font-semibold hover:text-blue-500 transition duration-300 
+                       before:absolute before:bottom-[-4px] before:left-0 before:w-0 before:h-1 before:bg-blue-500 
+                       before:transition-all before:duration-300 hover:before:w-full"
+          >
+            Groups
+          </Link>
+        </li>
+        <li>
+          <Link 
+            to="/your-groups" 
+            className="relative text-gray-800 font-semibold hover:text-blue-500 transition duration-300 
+                       before:absolute before:bottom-[-4px] before:left-0 before:w-0 before:h-1 before:bg-blue-500 
+                       before:transition-all before:duration-300 hover:before:w-full"
+          >
+            Your Groups
+          </Link>
+        </li>
+        <li>
+          <Link 
+            to="/about" 
+            className="relative text-gray-800 font-semibold hover:text-blue-500 transition duration-300 
+                       before:absolute before:bottom-[-4px] before:left-0 before:w-0 before:h-1 before:bg-blue-500 
+                       before:transition-all before:duration-300 hover:before:w-full"
+          >
+            About
+          </Link>
+        </li>
       </ul>
-      <Link to="/settings" className="user-button">👤 User/Settings</Link>
+
+      {/* User Settings Button */}
+      <Link 
+        to="/settings" 
+        className="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
+      >
+        👤 User/Settings
+      </Link>
     </nav>
   );
 }

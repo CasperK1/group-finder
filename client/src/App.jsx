@@ -13,26 +13,72 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import GroupInformation from './components/Group/GroupInformation';
 
+
 function Layout() {
   const location = useLocation();
-  const isDashboard = location.pathname.startsWith('/');
+  const isDashboard = location.pathname === '/' || location.pathname.startsWith('/your-groups');
+  const isAboutPage = location.pathname === '/about'; //  footer only on About page
 
   return (
-    <div className="app-container">
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      {/* Navbar */}
       <Navbar />
-      <div className="content-layout">
+
+      {/* Main Content Layout */}
+      <div className="flex flex-1 w-full bg-gradient-to-br from-gray-100 to-gray-200">
+        {/* Sidebar for "groups" / "your groups" */}
         {isDashboard && (
-          <div className="main-container-1 mr-8">
+          <aside className="w-64 min-w-[250px] p-4 hidden md:block">
             <Sidebar />
-          </div>
+          </aside>
         )}
-        <div className={isDashboard ? 'main-container-2' : 'full-width-container'}>
+
+        {/* Main Content */}
+        <main className={`flex-1 p-6 ${isDashboard ? "ml-64" : ""}`}>
           <Outlet />
-        </div>
+        </main>
       </div>
+
+      {/* Footer for about page */}
+      {isAboutPage && (
+        <footer className="w-full bg-white p-8 shadow-xl">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">Phong</h4>
+              <ul className="text-gray-600 text-md space-y-3 mt-3">
+                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UI desing</li>
+                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UX design</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">Leevi</h4>
+              <ul className="text-gray-600 text-md space-y-3 mt-3">
+                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UI desing</li>
+                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UX design</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">Casper</h4>
+              <ul className="text-gray-600 text-md space-y-3 mt-3">
+                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
+                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">Tino</h4>
+              <ul className="text-gray-600 text-md space-y-3 mt-3">
+                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
+                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
+              </ul>
+            </div>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
+
+
 
 const router = createBrowserRouter([
   {
@@ -57,11 +103,11 @@ const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        element: (
-          <ProtectedRoute>
+        element:// (
+          //<ProtectedRoute>
             <SettingsPage />,
-          </ProtectedRoute>
-        ),
+          //</ProtectedRoute>
+        //),
       },
       {
         path: 'group/:id',

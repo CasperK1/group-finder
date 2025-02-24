@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
 const Sidebar = () => {
-  const [showStudyType, setShowStudyType] = useState(false);
-  const [showYearStudy, setShowYearStudy] = useState(false);
+  const [showStudyType, setShowStudyType] = useState(true);
+  const [showYearStudy, setShowYearStudy] = useState(true);
 
   return (
     <aside className="sidebar p-4 bg-base-200 rounded-lg shadow-md w-64">

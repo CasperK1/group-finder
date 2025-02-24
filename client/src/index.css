@@ -2,11 +2,11 @@
 @import "tailwindcss";
 @plugin "daisyui";
 /* Global Parent */
-body, html {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background-color: #f4f4f4;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; 
+}
   
   /* Navbar */
   .navbar {
@@ -74,20 +74,7 @@ body, html {
     background: rgb(0, 0, 255);
   }
   
-  /* Layout for Sidebar & Main Content */
-  .content-layout {
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
-  }
-  
-  /* Sidebar (15% Width) */
-  .main-container-1 {
-    width: 15%;
-    min-width: 250px;
-    padding: 20px;
-  }
-  
+ 
   /* Sidebar */
   .sidebar {
     display: flex;
