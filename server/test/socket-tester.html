@@ -1,0 +1,520 @@
+<!doctype html>
+<html>
+<head>
+    <title>Socket.IO Tester</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <link rel="stylesheet" href="socket-tester.css"/>
+</head>
+<body>
+<div class="container">
+    <h1>Socket.IO Tester</h1>
+
+    <div class="panel">
+        <h2>Authentication</h2>
+        <div class="row">
+            <div class="flex-grow">
+                <p>
+                    Connection Status:
+                    <span id="connectionStatus" class="status disconnected"
+                    >Disconnected</span
+                    >
+                </p>
+                <div class="row">
+                    <input
+                            id="apiUrl"
+                            value="http://localhost:3000"
+                            placeholder="API URL"
+                    />
+                </div>
+            </div>
+            <div>
+                <p>Current Token:</p>
+                <textarea
+                        id="jwtToken"
+                        placeholder="JWT token will appear here"
+                ></textarea>
+                <div class="row">
+                    <button onclick="connect()">Connect Socket</button>
+                    <button onclick="disconnect()" class="danger">Disconnect</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chatbox-container">
+        <div class="panel chatbox-panel">
+            <h2>Send Events</h2>
+            <div class="row">
+                <div class="flex-grow">
+                    <input
+                            id="eventName"
+                            placeholder="Event name"
+                            style="width: 100%"
+                    />
+                    <textarea
+                            id="eventData"
+                            placeholder="Event data (JSON)"
+                    ></textarea>
+                </div>
+                <div>
+                    <button onclick="emitEvent()">Emit Event</button>
+                    <div class="event-templates">
+                        <h3>Event Templates</h3>
+                        <button onclick="fillEventTemplate('chat:join')">
+                            Join Group chat
+                        </button>
+                        <button onclick="fillEventTemplate('chat:leave')">
+                            Leave chat
+                        </button>
+                        <button onclick="fillEventTemplate('message:group')">
+                            Group Message
+                        </button>
+                        <button onclick="fillEventTemplate('message:direct')">
+                            Direct Message
+                        </button>
+                        <button onclick="fillEventTemplate('typing:start')">
+                            Start Typing
+                        </button>
+                        <button onclick="fillEventTemplate('typing:stop')">
+                            Stop Typing
+                        </button>
+                        <button onclick="fillEventTemplate('messages:history')">
+                            Load History
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Box Interface -->
+        <div class="panel chatbox-panel">
+            <h2>Chat Box</h2>
+            <div id="roomStatus" class="room-status">
+                Not joined any room yet. Use "Join Group chat" to start.
+            </div>
+            <div class="chatbox">
+                <div class="chat-header">
+                    <h3 id="chatRoomTitle">Chat Room</h3>
+                    <span id="roomId">Not connected</span>
+                </div>
+                <div id="chatMessages" class="chat-messages">
+                    <div class="message system">
+                        Connect to a room to start chatting
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input
+                            id="messageInput"
+                            placeholder="Type a message..."
+                            onkeypress="handleKeyPress(event)"
+                            disabled
+                    />
+                    <button id="sendButton" onclick="sendMessage()" disabled>
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Events Received</h2>
+        <button onclick="clearEvents()">Clear Events</button>
+        <pre id="events"></pre>
+    </div>
+</div>
+
+<script>
+  let socket;
+  const eventsEl = document.getElementById("events");
+  const connectionStatusEl = document.getElementById("connectionStatus");
+  const apiUrl = document.getElementById("apiUrl");
+  const jwtTokenEl = document.getElementById("jwtToken");
+  const chatMessagesEl = document.getElementById("chatMessages");
+  const messageInputEl = document.getElementById("messageInput");
+  const sendButtonEl = document.getElementById("sendButton");
+  const roomStatusEl = document.getElementById("roomStatus");
+  const chatRoomTitleEl = document.getElementById("chatRoomTitle");
+  const roomIdEl = document.getElementById("roomId");
+
+  // Current active room
+  let roomId = null;
+  let userId = null;
+  let username = null;
+
+  // Socket connection
+  function connect() {
+    const token = jwtTokenEl.value.trim();
+    if (!token) {
+      alert("Please get a JWT token first");
+      return;
+    }
+
+    // Disconnect existing socket if any
+    if (socket && socket.connected) {
+      socket.disconnect();
+    }
+
+    socket = io(apiUrl.value, {
+      auth: {token},
+    });
+
+    socket.on("connect", () => {
+      connectionStatusEl.textContent = "Connected";
+      connectionStatusEl.className = "status connected";
+      addEvent("Connected to server");
+
+      // Extract user info from token
+      try {
+        const tokenParts = token.split(".");
+        const payload = JSON.parse(atob(tokenParts[1]));
+        userId = payload.id;
+        // Request user info if available
+        socket.emit("user:info", {userId});
+      } catch (e) {
+        console.error("Error parsing token:", e);
+      }
+    });
+
+    socket.on("disconnect", () => {
+      connectionStatusEl.textContent = "Disconnected";
+      connectionStatusEl.className = "status disconnected";
+      addEvent("Disconnected from server");
+      disableChatInput();
+    });
+
+    socket.on("connect_error", (err) => {
+      connectionStatusEl.textContent = "Error: " + err.message;
+      connectionStatusEl.className = "status disconnected";
+      addEvent(`Connection error: ${err.message}`);
+      disableChatInput();
+    });
+
+    // Handle join room confirmation
+    socket.on("chat:joined", (data) => {
+      roomId = data.roomId || data.groupId;
+      name = data.groupName;
+      roomStatusEl.innerText = `Connected to room: ${name} id:${roomId}`;
+      chatRoomTitleEl.innerText = `Group Chat`;
+      roomIdEl.innerText = roomId;
+
+      enableChatInput();
+
+      // Clear previous messages
+      chatMessagesEl.innerHTML = "";
+      addChatMessage(
+        "System",
+        "You joined the chat room",
+        new Date(),
+        "system"
+      );
+    });
+
+    // Handle leave room confirmation
+    socket.on("chat:left", (data) => {
+      addChatMessage(
+        "System",
+        "You left the chat room",
+        new Date(),
+        "system"
+      );
+      disableChatInput();
+      roomId = null;
+      roomStatusEl.innerText =
+        'Not joined any room yet. Use "Join Group chat" to start.';
+      chatRoomTitleEl.innerText = "Chat Room";
+      roomIdEl.innerText = "Not connected";
+    });
+
+    // Handle bot/system messages
+    socket.on("message:bot", (data) => {
+      const message = typeof data === "string" ? data : data.message;
+      const timestamp = new Date();
+      addChatMessage("System", message, timestamp, "system");
+    });
+
+    // Handle new messages
+    socket.on("message:new", (data) => {
+      const messageData = data.message || data;
+
+      const senderName = messageData.sender?.username || "Unknown";
+      const messageContent = messageData.content?.text || "No content";
+      const timestamp = new Date(messageData.createdAt || Date.now());
+      const messageType = messageData.sender?.userId === userId ? "sent" : "received";
+
+      addChatMessage(senderName, messageContent, timestamp, messageType);
+    });
+
+    // Handle user info
+    socket.on("user:info", (data) => {
+      if (data.username) {
+        username = data.username;
+      }
+    });
+
+    // Handle message history
+    socket.on("messages:history", (data) => {
+      // Clear chat before adding history
+      chatMessagesEl.innerHTML = "";
+
+      if (data.messages && data.messages.length > 0) {
+        data.messages.forEach((msg) => {
+          const senderName = msg.sender.username;
+          const messageContent = msg.content.text;
+          const timestamp = new Date(msg.createdAt);
+          const messageType =
+            msg.sender.userId === userId ? "sent" : "received";
+
+          addChatMessage(
+            senderName,
+            messageContent,
+            timestamp,
+            messageType
+          );
+        });
+
+        addChatMessage(
+          "System",
+          "Loaded message history",
+          new Date(),
+          "system"
+        );
+      } else {
+        addChatMessage(
+          "System",
+          "No message history",
+          new Date(),
+          "system"
+        );
+      }
+    });
+
+    // Listen for all events for debugging
+    socket.onAny((event, ...args) => {
+      addEvent(`${event}: ${JSON.stringify(args, null, 2)}`);
+    });
+  }
+
+  function disconnect() {
+    if (socket) {
+      socket.disconnect();
+      connectionStatusEl.textContent = "Disconnected";
+      connectionStatusEl.className = "status disconnected";
+      addEvent("Disconnected from server");
+      disableChatInput();
+      roomId = null;
+    }
+  }
+
+  function emitEvent() {
+    if (!socket || !socket.connected) {
+      alert("Not connected to server");
+      return;
+    }
+
+    const eventName = document.getElementById("eventName").value;
+    const eventDataStr = document.getElementById("eventData").value;
+
+    if (!eventName) {
+      alert("Please enter an event name");
+      return;
+    }
+
+    let eventData;
+    try {
+      eventData = eventDataStr ? JSON.parse(eventDataStr) : {};
+    } catch (err) {
+      alert("Invalid JSON data");
+      return;
+    }
+
+    socket.emit(eventName, eventData);
+    addEvent(
+      `Emitted: ${eventName} - ${JSON.stringify(eventData, null, 2)}`
+    );
+
+    // If joining a chat room, update the current room
+    if (eventName === "chat:join") {
+      const groupId = eventData.groupId;
+      if (groupId) {
+        roomId = `group:${groupId}`;
+      }
+    }
+  }
+
+  function sendMessage() {
+    if (!socket || !socket.connected || !roomId) {
+      alert("Not connected to a chat room");
+      return;
+    }
+
+    const messageText = messageInputEl.value.trim();
+    if (!messageText) {
+      return;
+    }
+
+    // Extract groupId from roomId (remove 'group:' prefix if present)
+    const groupId = roomId.startsWith("group:")
+      ? roomId.substring(6)
+      : roomId;
+
+    // Send message to the room
+    socket.emit("message:group", {
+      groupId: groupId,
+      text: messageText,
+    });
+
+    // Clear input field
+    messageInputEl.value = "";
+  }
+
+  function handleKeyPress(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function addChatMessage(sender, content, timestamp, type = "received") {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${type}`;
+
+    if (type !== "system") {
+      const senderDiv = document.createElement("div");
+      senderDiv.className = "message-sender";
+      senderDiv.textContent = sender;
+      messageDiv.appendChild(senderDiv);
+    }
+
+    const contentDiv = document.createElement("div");
+    contentDiv.className = "message-content";
+    contentDiv.textContent = content;
+    messageDiv.appendChild(contentDiv);
+
+    const timeDiv = document.createElement("div");
+    timeDiv.className = "message-time";
+    timeDiv.textContent = formatTime(timestamp);
+    messageDiv.appendChild(timeDiv);
+
+    chatMessagesEl.appendChild(messageDiv);
+    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+  }
+
+  function formatTime(date) {
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function enableChatInput() {
+    messageInputEl.disabled = false;
+    sendButtonEl.disabled = false;
+    messageInputEl.placeholder = "Type a message...";
+    messageInputEl.focus();
+  }
+
+  function disableChatInput() {
+    messageInputEl.disabled = true;
+    sendButtonEl.disabled = true;
+    messageInputEl.placeholder = "Join a room to start chatting...";
+  }
+
+  function addEvent(text) {
+    const time = new Date().toLocaleTimeString();
+    eventsEl.innerHTML += `[${time}] ${text}\n\n`;
+    eventsEl.scrollTop = eventsEl.scrollHeight;
+  }
+
+  function clearEvents() {
+    eventsEl.innerHTML = "";
+  }
+
+  // Fill event templates
+  function fillEventTemplate(eventType) {
+    const eventNameEl = document.getElementById("eventName");
+    const eventDataEl = document.getElementById("eventData");
+
+    eventNameEl.value = eventType;
+
+    let data = {};
+
+    switch (eventType) {
+      case "chat:join":
+        data = {
+          groupId: "67bc8290158e85c603c00596", // Replace with actual group ID
+        };
+        break;
+      case "chat:leave":
+        data = {
+          groupId: "67bc8290158e85c603c00596", // Replace with actual group ID
+        };
+        break;
+      case "message:group":
+        // Extract groupId from the current room if possible
+        const groupId =
+          roomId && roomId.startsWith("group:")
+            ? roomId.substring(6)
+            : "67bc8290158e85c603c00596";
+
+        data = {
+          groupId: groupId,
+          text: "Hello everyone in the group!",
+        };
+        break;
+      case "message:direct":
+        data = {
+          recipientId: "64f5a39e8c8d1a8e94b9f456", // Replace with actual user ID
+          content: "Hello, this is a direct message.",
+        };
+        break;
+      case "typing:start":
+        const typingGroupId =
+          roomId && roomId.startsWith("group:")
+            ? roomId.substring(6)
+            : "67bc8290158e85c603c00596";
+
+        data = {
+          groupId: typingGroupId,
+        };
+        break;
+      case "typing:stop":
+        const stopTypingGroupId =
+          roomId && roomId.startsWith("group:")
+            ? roomId.substring(6)
+            : "67bc8290158e85c603c00596";
+
+        data = {
+          groupId: stopTypingGroupId,
+        };
+        break;
+      case "messages:history":
+        const historyGroupId =
+          roomId && roomId.startsWith("group:")
+            ? roomId.substring(6)
+            : "67bc8290158e85c603c00596";
+
+        data = {
+          groupId: historyGroupId,
+          limit: 20,
+        };
+        break;
+    }
+
+    eventDataEl.value = JSON.stringify(data, null, 2);
+  }
+
+  // Initialize
+  function init() {
+    disableChatInput();
+
+    // For demo/testing: generate a mock JWT
+    jwtTokenEl.value =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmM4MjkwMTU4ZTg1YzYwM2MwMDU5OCIsImlhdCI6MTcwNzE1NDA3MywiZXhwIjoxNzA3MTU3NjczfQ.W3xKABXPAvlDVl5_cdq3lX4I3JyPrXwJIfvj5x7kLVs";
+  }
+
+  // Run init on page load
+  init();
+</script>
+</body>
+</html>

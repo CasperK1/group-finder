@@ -23,6 +23,7 @@
     "prettier": "^3.4.2"
   },
   "scripts": {
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "redis": "wsl redis-cli"
   }
 }
