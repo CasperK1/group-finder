@@ -5,10 +5,9 @@ const Group = require("../models/Group");
 const User = require("../models/User");
 const mongoose = require("mongoose");
 
-/* Example form:
+/* Example form with only required fields:
 {
     "name": "Cool Group",
-    "bio": "Description goes here lorem ipsum blah blah",
     "city": "Helsinki",
     "groupSize": 4
 }
@@ -18,7 +17,7 @@ const mongoose = require("mongoose");
 const getAllGroups = async (req, res) => {
     try {
         const groups = await Group.find()
-        .select("-chatHistory -documents -events")
+        .select({ chatHistory: 0, documents: 0, events: 0 }) //Remove unnecessary fields
         .sort({ createdAt: -1 });
         res.status(200).json(groups);
     } catch (error) {
@@ -35,7 +34,6 @@ const getGroupInformation = async (req, res) => {
     }
 
     try {
-
         if (!groupId) {
             return res.status(400).json({ message: "Group ID is required"});
         }
@@ -98,17 +96,17 @@ const createGroup = async (req, res) => {
             events: []
         });
 
-        // Add the group ID to the user's groupsJoined array
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
+ 
+        user.groupsJoined.push(group._id); // Add the group to the user's groupsJoined array
 
-        user.groupsJoined.push(group._id);
+        // Save the updated user and new group
         await user.save();
-        
-        const newGroup = await group.save();
+        await group.save();
 
-        res.status(201).json(newGroup);
+        res.status(201).json(group);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -135,6 +133,7 @@ const updateGroup = async (req, res) => {
             return res.status(404).json({ message: "Group not found" });
         }
 
+        // Prevent non-owner from editing group information
         if (userId !== group.owner.toString()) {
             return res.status(400).json({ message: "Only the group owner can edit group information!" })
         }
@@ -153,7 +152,8 @@ const updateGroup = async (req, res) => {
             };
         }
 
-        const updatedGroup = await Group.findByIdAndUpdate(groupId, updates, {
+        // Updates the group with the new information
+        const updatedGroup = await Group.findByIdAndUpdate(groupId, updates, { 
             new: true,
             runValidators: true
         });
@@ -186,26 +186,30 @@ const joinGroup = async (req, res) => {
             });
         }
 
+        // Prevent user from attempting to join a group they are already a member of
         if (group.members.includes(userId)) {
-            return res.status(400).json({ message: "This user is already a member!" });
+            return res.status(400).json({ message: "You are already a member of this group!" });
         }
 
+        // Prevent user from joining a group with maximum amount of members
         if (group.members.length >= group.information.groupSize) {
             return res.status(400).json({ message: "Group is full!" });
         }
 
+         // Prevent user from joining a group that is invite-only
         if (group.settings.inviteOnly) {
             return res.status(403).json({
                 message: "This group requires an invitation to join."
             });
         }
 
-        group.members.push(userId);
-        user.groupsJoined.push(groupId);
+        group.members.push(userId); // Add current user to the groups members array
+        user.groupsJoined.push(groupId); // Add the group to the user's groupsJoined array
+
+        // Save the changes made to the group and the user
         await Promise.all([group.save(), user.save()]);
 
         res.status(200).json({ message: "Succesfully joined the group." });
-        
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -233,17 +237,25 @@ const leaveGroup = async (req, res) => {
             });
         }
 
-        // Check if current user is the group owner
-        if (userId === group.owner.toString()) {
+        // Prevent non-members from leaving the group (lol)
+        if (!group.members.includes(userId)) { 
+            return res.status(400).json({ message: "Can't leave a group you are not a member of!" });
+        }
+
+        // Prevent owner from leaving the group
+        if (userId === group.owner.toString()) { 
             return res.status(400).json({ message: "Please either delete the group, or make someone else the owner first." })
         }
 
+        // If user is a moderator, remove them from the moderator list
         if (group.moderators.includes(userId)) {
             group.moderators.pull(userId);
         }
 
-        group.members.pull(userId);
-        user.groupsJoined.pull(groupId);
+        group.members.pull(userId); // Remove user from the group's members array
+        user.groupsJoined.pull(groupId); // Remove the group from the user's groupsJoined array
+
+        // Save the changes made to the group and the user
         await Promise.all([group.save(), user.save()]);
 
         res.status(200).json({ message: "Succesfully left the group." });
@@ -264,24 +276,24 @@ const deleteGroup = async (req, res) => {
     try {
         const group = await Group.findById(groupId);
 
-        // Check if the current user is the owner of the group
-        if (userId !== group.owner.toString()) {
+        if (!group) {
+            return res.status(404).json({ message: "Group not found" });
+        }
+
+        // Prevent non-owner from deleting the group
+        if (userId !== group.owner.toString()) { 
             return res.status(400).json({ message: "Only the group owner can delete the group!" })
         }
 
         // Remove the group from all the members' groupsJoined arrays
-        await Group.updateMany(
+        await User.updateMany(
             {groupsJoined: groupId},
             {$pull: {groupsJoined: groupId}}
         );
 
-        const deletedGroup = await Group.findOneAndDelete(groupId);
+        await Group.findByIdAndDelete(groupId); // Deletes the group from the database
 
-        if (deletedGroup) {
-            res.status(204).json({ message: "Group deleted" });
-        } else {
-            res.status(404).json({ message: "Group not found" });
-        }
+        res.status(204).send();
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -315,23 +327,23 @@ const addModerator = async (req, res) => {
             });
         }
 
-        // Check if current user is the group owner
+        // Prevent non-owner from adding moderators
         if (userId !== group.owner.toString()) {
             return res.status(400).json({ message: "Only the group owner can add moderators!" })
         }
 
-        // Check if the given user ID is a member of the group
+        // Prevent adding non-members as moderators
         if (!group.members.includes(moderatorId)) {
             return res.status(400).json({ message: "User needs to be a member of the group!" });
         }
 
-        // Check if the given user ID is already a moderator
+        // Prevent adding an already existing moderator
         if (group.moderators.includes(moderatorId)) {
             return res.status(400).json({ message: "This user is already a moderator!" });
         }
 
-        group.moderators.push(moderatorId);
-        await group.save();
+        group.moderators.push(moderatorId); // Add the new moderator to the group's moderators array
+        await group.save(); // Save the updated group
 
         res.status(200).json({ message: "Succesfully added moderator!" });
     } catch (error) {
@@ -367,23 +379,23 @@ const removeModerator = async (req, res) => {
             });
         }
 
-        // Check if the current user is the group owner
+        // Prevent non-owners from removing moderators
         if (userId !== group.owner.toString()) {
             return res.status(400).json({ message: "Only the group owner can remove moderators!" })
         }
 
-        // Check if the given user ID is a moderator
+        // Prevent attempts to remove a non-moderator
         if (!group.moderators.includes(moderatorId)) {
             return res.status(400).json({ message: "This user is not a moderator!" });
         }
 
-        // Check if the given user ID is the owenr
+        // Prevents attempts to remove the group owner
         if (moderatorId === group.owner.toString()) {
             return res.status(400).json({ message: "Group owner must be a moderator!" });
         }
 
-        group.moderators.pull(moderatorId);
-        await group.save();
+        group.moderators.pull(moderatorId); // Removes the moderator from the group's moderators array
+        await group.save(); // Saves the updated group
 
         res.status(200).json({ message: "Successfully removed moderator." });
     } catch (error) {
@@ -419,17 +431,17 @@ const changeOwner = async (req, res) => {
             });
         }
 
-        // Check if the current user is the group owner
+        // Prevents non-owners from changing ownership
         if (userId !== group.owner.toString()) {
             return res.status(400).json({ message: "Only the group owner can transfer ownership!" })
         }
 
-        // Check if the given user ID is already the owner
+        // Prevents the group owner from giving ownership to themselves again (lol)
         if (ownerId === group.owner.toString()) {
             return res.status(400).json({ message: "You are already the owner!" })
         }
 
-        // Check if the given user ID is a member of the group
+        // Prevents from granting ownership to a non-member
         if (!group.members.includes(ownerId)) {
             return res.status(400).json({ message: "User has to be a member of the group!" });
         }
@@ -439,8 +451,8 @@ const changeOwner = async (req, res) => {
             group.moderators.push(ownerId);
         }
 
-        group.owner = ownerId;
-        await group.save();
+        group.owner = ownerId; // Changes the owner to the new one
+        await group.save(); // Saves the updated group
 
         res.status(200).json({ message: "Successfully changed group owner." });
     } catch (error) {
@@ -476,32 +488,33 @@ const kickMember = async (req, res) => {
             });
         }
 
-        // Check if current user is a moderator
+        // Prevents non-moderators from kicking members
         if (!group.moderators.includes(userId)) {
             return res.status(400).json({ message: "Only moderators can kick members!" });
         }
 
-        // Check if given user ID is a member
+        // Prevents attempts to kick non-members
         if (!group.members.includes(memberId)) {
             return res.status(400).json({ message: "That user is not a member of this group!" });
         }
 
-        // Check if given user ID is the group owner
+        // Prevents kicking the group owner
         if (memberId === group.owner.toString()) {
             return res.status(400).json({ message: "Can't kick the group owner!" });
         }
 
-        // Check if given user ID is a moderator
+        // Prevents kicking moderators, unless the current user is the group owner
         if (group.moderators.includes(memberId)) {
-            // Check if current user is the group owner
-            if (!userId === group.owner.toString()) {
+            if (userId !== group.owner.toString()) {
                 return res.status(400).json({ message: "Only the owner can kick moderators!" })
             }
-            group.moderators.pull(memberId);
+            group.moderators.pull(memberId); // Removes the member from the group's moderators array
         }
 
-        group.members.pull(memberId);
-        member.groupsJoined.pull(groupId);
+        group.members.pull(memberId); // Removes the member from the group's members array
+        member.groupsJoined.pull(groupId); // Removes the member from the member's groupsJoined array
+
+        // Save the updated group and member
         await Promise.all([group.save(), member.save()]);
 
         return res.status(200).json({ message: "Member kicked succesfully." });
