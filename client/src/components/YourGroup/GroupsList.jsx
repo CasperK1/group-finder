@@ -20,6 +20,13 @@ function GroupsList({ allGroup, ownGroup }) {
     setSelectedGroupId(groupId);
     navigate(`/group/${groupId}`);
   };
+
+  const handleBlockGroup = () => {
+    console.log('Block')
+  }
+  const handleSaveGroup = () => {
+    console.log('Save')
+  }
   useEffect(() => {
     const fetchGroupData = async () => {
       setLoading(true);
@@ -74,7 +81,7 @@ function GroupsList({ allGroup, ownGroup }) {
         {groupData.map((group) => (
           <div
             key={group._id}
-            className={`bg-white w-xs h-auto p-4 rounded-xl shadow-md relative ${
+            className={`bg-white w-xs h-auto p-4 rounded-xl shadow-md relative z-0 ${
               selectedGroupId === group._id ? 'bg-blue-100' : ''
             }`}
             onClick={() => handleGroupSelect(group._id)}
@@ -87,7 +94,7 @@ function GroupsList({ allGroup, ownGroup }) {
             />
             <GroupDescription description={group.information.bio} />
 
-            <GroupFooter date={convertDate(group.createdAt).formattedDate} />
+            <GroupFooter date={convertDate(group.createdAt).formattedDate} handleBlockGroup={handleBlockGroup} handleSaveGroup={handleSaveGroup}/>
           </div>
         ))}
       </div>

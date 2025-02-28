@@ -1,22 +1,24 @@
-import { useState } from "react";
-const Button = ({ onClick, text, className, icon }) => {
+import { useState } from 'react';
+import { Icon } from '@iconify/react';
+const Button = ({ onClick, text, className = '', icon }) => {
   const [isActive, setIsActive] = useState(false);
 
   const handleClick = () => {
     setIsActive(!isActive);
-    if (onClick) onClick(); 
+    if (onClick) onClick();
   };
 
   return (
     <button
-      className={`${className} btn border-none shadow-none rounded-xl 
-      `}
+      className={`${className} btn border-none shadow-none rounded-xl flex items-center gap-2 p-2`}
       onClick={handleClick}
     >
+      {icon && <Icon icon={icon} className="text-lg" />}
       {text}
     </button>
   );
 };
+
 export function GroupFooter({
   groupInfo,
   isJoinedGroup,
@@ -26,7 +28,6 @@ export function GroupFooter({
   handleSaveGroup,
   handleLeaveGroup,
 }) {
-
   const renderJoinButton = () => (
     <div className="flex items-center justify-between mb-4 px-4">
       <span className="text-gray-400">{date}</span>
@@ -37,8 +38,16 @@ export function GroupFooter({
       )}
 
       <div className="flex space-x-4">
-        <Button onClick={handleBlockGroup} className="fas fa-ban text-black" icon="fas fa-ban" />
-        <Button onClick={handleSaveGroup} className="fas fa-bookmark text-black" icon="fas fa-bookmark" />
+        <Button
+          onClick={handleBlockGroup}
+          icon="fa-solid:ban"
+          className="w-12 h-12 flex items-center justify-center bg-gray-200 rounded-lg text-white z-1000"
+        />
+        <Button
+          onClick={handleSaveGroup}
+          icon="fa-solid:bookmark"
+          className="w-12 h-12 flex items-center justify-center bg-gray-200 rounded-lg text-white "
+        />
       </div>
     </div>
   );

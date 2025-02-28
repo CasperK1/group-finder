@@ -84,6 +84,21 @@ function SignUpForm() {
             )}
           />
         </div>
+        <div className="mb-4">
+          <Controller
+            name="username"
+            control={control}
+            rules={{ required: 'Username is required' }}
+            render={({ field }) => (
+              <input
+                {...field}
+                type="text"
+                placeholder="Username"
+                className="border border-gray-300 p-2 rounded placeholder:text-xs"
+              />
+            )}
+          />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <Controller
             name="password"

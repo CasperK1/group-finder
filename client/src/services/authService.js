@@ -1,11 +1,9 @@
 import axios from 'axios';
-
-const apiRegisterURL = 'http://localhost:3000/api/auth/register';
-const apiLoginURL = 'http://localhost:3000/api/auth/login';
+import { apiPaths } from '../path';
 
 export const handleLogin = async (payload) => {
   try {
-    const response = await axios.post(apiLoginURL, payload, {
+    const response = await axios.post(`${apiPaths.auth}/login`, payload, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -24,21 +22,21 @@ export const handleLogin = async (payload) => {
 
 export const handleRegister = async (data) => {
   try {
-    const { email, password, lastName, firstName } = data;
+    const { email, password, lastName, firstName, username } = data;
     const payload = {
       email: email,
-      username: email,  // Ensure username is correctly set
+      username: username, 
       password: password,
       firstName: firstName,
       lastName: lastName,
       major: "Computer Science",
-      academicInterests: ["coding"],  // Array as expected by backend
-      bio: "",  // Empty string is fine
+      academicInterests: ["coding"], 
+      bio: "",
       timePreference: "morning",
       locationPreference: "on-campus",
       groupSizePreference: 4
     };
-    const response = await axios.post(apiRegisterURL, payload, {
+    const response = await axios.post(`${apiPaths.auth}/register`, payload, {
       headers: {
         'Content-Type': 'application/json',
       },

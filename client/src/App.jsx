@@ -12,6 +12,7 @@ import SettingsPage from './page/Settings';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import GroupInformation from './components/Group/GroupInformation';
+import { apiPaths } from './path';
 
 
 function Layout() {
