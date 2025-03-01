@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { apiService } from '../../services/api/apiService';
 import { ChatApp } from '../ChatApp/ChatApp';
 
-export function GroupTabs({ groupUsers, groupId, activeTab, setActiveTab, toggleChatModal, isChatOpen, isJoined }) {
+export function GroupTabs({ groupData,groupUsers, groupId, activeTab, setActiveTab, toggleChatModal, isChatOpen, isJoined }) {
   const [groupFiles, setGroupFiles] = useState(null);
   useEffect(() => {
     const jwt = localStorage.getItem('jwtToken');
@@ -66,7 +66,7 @@ export function GroupTabs({ groupUsers, groupId, activeTab, setActiveTab, toggle
         {activeTab === 'Meetings' && <p className="text-gray-500">Upcoming meetings schedule...</p>}
       </div>
 
-      <div>{isChatOpen && <ChatApp toggleChatModal={toggleChatModal} />}</div>
+      <div>{isChatOpen && <ChatApp toggleChatModal={toggleChatModal} groupId={groupId} groupData={groupData}/>}</div>
     </div>
   );
 }

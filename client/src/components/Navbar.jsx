@@ -3,26 +3,30 @@ import { Link } from 'react-router-dom';
 import logo from '../assets/Groupfinderlogo.png';
 import { apiService } from '../services/api/apiService';
 import { useNavigate } from 'react-router-dom';
+import { useUserProfile } from '../context/userProfileContext';
 function Navbar() {
-  const [userProfile, setUserProfile] = useState(null);
+  // const [userProfile, setUserProfile] = useState(null);
   const token = localStorage.getItem('jwtToken');
   const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate()
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const response = await apiService.user.getUserProfile({ token: token, id: user.userId });
-        if (response) {
-          setUserProfile(response);
-        } else {
-          console.log('No data received');
-        }
-      } catch (error) {
-        console.error('Error fetching group data:', error);
-      }
-    };
-    fetchUserProfile();
-  }, []);
+  const userProfile = useUserProfile();
+  console.log('sdfsdfsdfsdfds', userProfile);
+  
+  // useEffect(() => {
+  //   const fetchUserProfile = async () => {
+  //     try {
+  //       const response = await apiService.user.getUserProfile({ token: token, id: user.userId });
+  //       if (response) {
+  //         setUserProfile(response);
+  //       } else {
+  //         console.log('No data received');
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching group data:', error);
+  //     }
+  //   };
+  //   fetchUserProfile();
+  // }, []);
 
   const handleLoginClick = () => {
     navigate('/login');
