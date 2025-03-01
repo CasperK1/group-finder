@@ -8,7 +8,7 @@ export const uploadProfilePicture = async (req) => {
           Authorization: `Bearer ${req.token}`,
         },
       });
-      console.log(response.data); 
+      return response.data
     } catch (error) {
       console.error('Error uploading profile picture:', error);
     }

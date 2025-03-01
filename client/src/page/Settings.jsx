@@ -10,10 +10,21 @@ const SettingsPage = () => {
   const [selectedFile, setSelectedFile]=useState(null)
   const fileInputRef = useRef(null);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async(e) => {
     const file = e.target.files[0];
     console.log('File selected:', file.name);
-    setSelectedFile(file)
+    const formData = new FormData
+      formData.append('image', file)
+      try {
+        const response = await apiService.file.uploadProfilePicture({ token: jwt, id: user.userId, formData});
+        if (response) {
+          setUserProfilePicture(response.photoUrl);
+        } else {
+          console.log('No data received');
+        }
+      } catch (error) {
+        console.error('Error fetching group data:', error);
+      }
   };
 
   // Handle button click to open the file input dialog
@@ -23,7 +34,7 @@ const SettingsPage = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const response = await apiService.user.getUserProfile({ token: jwt, id: user.userId });
+        const response = await apiService.user.getUserProfile({ token: jwt});
         if (response) {
           setUserProfile(response);
         } else {
@@ -35,25 +46,6 @@ const SettingsPage = () => {
     };
     fetchUserProfile();
   }, []);
-
-  useEffect(() => {
-    const uploadProfilePicture = async () => {
-      const formData = new FormData
-      formData.append('profile_picture', selectedFile)
-      try {
-        const response = await apiService.file.uploadProfilePicture({ token: jwt, id: user.userId, formData});
-        if (response) {
-          setUserProfilePicture(response);
-        } else {
-          console.log('No data received');
-        }
-      } catch (error) {
-        console.error('Error fetching group data:', error);
-      }
-    };
-    uploadProfilePicture();
-  }, [selectedFile]);
-  console.log(userProfilePicture);
   
   return (
     <div className="min-h-screen flex flex-col items-center p-6">

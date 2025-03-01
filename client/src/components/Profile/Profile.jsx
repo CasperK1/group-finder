@@ -20,7 +20,7 @@ export const ProfileSection = ({userProfile, handleFileChange,fileInputRef, hand
         </button>
 
         <h3 className="text-2xl font-semibold text-gray-900 mt-6">Edit Profile</h3>
-        <form className="w-full mt-4 space-y-4">
+        {/* <form className="w-full mt-4 space-y-4">
           <input
             type="text"
             placeholder="Username"
@@ -46,7 +46,7 @@ export const ProfileSection = ({userProfile, handleFileChange,fileInputRef, hand
           >
             Save Changes
           </button>
-        </form>
+        </form> */}
       </div>
     )
 }

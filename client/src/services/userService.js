@@ -24,20 +24,16 @@ export const getAllUsers = async (token) => {
 
 export const getUserProfile = async (req) => {
   try {
-    const url = `${apiPaths.users}/profile/${req.id}`;
-    const response = await fetch(url, {
-      method: "GET",
+    const url = `${apiPaths.users}/profile/`;
+    console.log('ur;',url);
+    
+    const response = await axios.get(url, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${req.token}`,
       },
     });
     
-    if (response.status !== 200) {
-      console.error(`Error! Status: ${response.status}`);
-      return null;
-    }
-
     console.log('Get user process is successful:', response.data);
     return response.data;
   } catch (error) {
