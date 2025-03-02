@@ -18,11 +18,10 @@ export function GroupHeader({ groupUsers, groupInfo, groupData }) {
         )}
         <div className="avatar-group -space-x-6 rtl:space-x-reverse">
           {groupInfo &&
-            groupUsers.map((user) => (
-              <div className="avatar">
+            groupUsers.map((user, index) => (
+              <div key={index} className="avatar">
                 <div className="w-12">
-                  <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" alt={user} />
-                  {/* update later */}
+                  <img src={process.env.REACT_APP_DEFAULT_AVATAR_URL} alt={user} />
                 </div>
               </div>
             ))}

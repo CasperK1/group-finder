@@ -16,6 +16,8 @@ function GroupInformation() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
   const jwt = localStorage.getItem('jwtToken');
+  console.log(jwt);
+  
   const { user } = useContext(AuthContext);
   useEffect(() => {
     const fetchGroupData = async () => {

@@ -1,11 +1,9 @@
 import axios from 'axios';
-
-const apiGroupURL = 'http://localhost:3000/api/groups';
-const apiGroupFilesURL = 'http://localhost:3000/api/files/';
+import { apiPaths } from '../path';
 
 export const getAllGroups = async (token) => {
   try {
-    const url =  apiGroupURL;
+    const url =  apiPaths.groups;
     const response = await axios.get(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -16,7 +14,6 @@ export const getAllGroups = async (token) => {
       console.error(`Error! Status: ${response.status}`);
       return null;
     }
-    console.log('Get group data process is successful:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching group data:', error.response ? error.response.data : error.message);
@@ -26,8 +23,7 @@ export const getAllGroups = async (token) => {
 
 export const getGroupInformationData = async ({token, groupId }) => {
   try {
-    const url = `${apiGroupURL}/${groupId}`
-
+    const url = `${apiPaths.groups}/${groupId}`
     const response = await axios.get(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -38,7 +34,6 @@ export const getGroupInformationData = async ({token, groupId }) => {
       console.error(`Error! Status: ${response.status}`);
       return null;
     }
-    console.log('Get group data process is successful:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching group data:', error.response ? error.response.data : error.message);
@@ -46,8 +41,10 @@ export const getGroupInformationData = async ({token, groupId }) => {
   }
 };
 export const joinGroup = async (req) => {
+  console.log('req', req);
+  
   try {
-    const url = `${apiGroupURL}/${req.id}/join`;
+    const url = `${apiPaths.groups}/join/${req.id}`;
     const response = await fetch(url, {
       method: "PUT",
       headers: {
@@ -70,7 +67,7 @@ export const joinGroup = async (req) => {
 
 export const leaveGroup = async (req) => {
   try {
-    const url = `${apiGroupURL}/${req.id}/leave`;
+    const url = `${apiPaths.groups}/leave/${req.id}`;
     const response = await fetch(url, {
       method: "PUT",
       headers: {
@@ -92,12 +89,8 @@ export const leaveGroup = async (req) => {
 };
 
 export const getGroupFiles = async (req) => {
-  console.log('dfasfasdasdasd',token)
-  console.log(id);
-  ;
-  
   try {
-    const url = `${apiGroupFilesURL}/group/${req.id}`;
+    const url = `${apiPaths.files}/group/${req.id}`;
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -110,8 +103,6 @@ export const getGroupFiles = async (req) => {
       console.error(`Error! Status: ${response.status}`);
       return null;
     }
-
-    console.log('Get group files process is successful:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching group files:', error.response ? error.response.data : error.message);

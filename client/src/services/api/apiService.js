@@ -1,7 +1,7 @@
 import { handleLogin, handleRegister } from '../authService';
 import { getGroupInformationData, getGroupFiles, joinGroup, leaveGroup, getAllGroups } from '../groupService';
-import { getUserProfile, getAllUsers, getGroupJoined} from '../userService';
-
+import { getUserProfile, getAllUsers} from '../userService';
+import { uploadProfilePicture } from '../fileService';
 export const apiService = {
   auth: {
     handleLogin,
@@ -17,6 +17,8 @@ export const apiService = {
   user: {
     getAllUsers, 
     getUserProfile,
-    getGroupJoined
+  },
+  file:{
+    uploadProfilePicture
   }
 };
