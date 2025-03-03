@@ -2,7 +2,8 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { sendVerificationEmail } = require("../services/emailAuth");
+const validator = require("validator");
+const {sendVerificationEmail} = require("../services/emailAuth");
 // For testing. Required fields are email, username, password, firstName, lastName, major. Rest are optional.
 /*
 {
@@ -37,13 +38,19 @@ const registerUser = async (req, res) => {
       bio,
     } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({email});
     if (existingUser) {
-      return res.status(400).json({ message: "Email already exists" });
+      return res.status(400).json({message: "Email already exists"});
     }
-    const existingUsername = await User.findOne({ username });
+    const existingUsername = await User.findOne({username});
     if (existingUsername) {
-      return res.status(400).json({ message: "Username already exists" });
+      return res.status(400).json({message: "Username already exists"});
+    }
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({message: "Email not valid"});
+    }
+    if (!validator.isStrongPassword(password)) {
+      return res.status(400).json({message: "Password not strong enough"});
     }
 
     // Generate verification token for email
@@ -89,7 +96,7 @@ const registerUser = async (req, res) => {
   } catch (error) {
     // Validation error =  missing required fields etc.
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({message: error.message});
     }
     res.status(500).json({
       error: "Server error. Please try again.",
@@ -101,11 +108,11 @@ const registerUser = async (req, res) => {
 // GET /login/users/verify-email?token=(User.verificationToken) NOTE: This is not the JWT token
 const verifyEmail = async (req, res) => {
   try {
-    const { token } = req.query;
+    const {token} = req.query;
 
     const user = await User.findOne({
       verificationToken: token,
-      verificationTokenExpires: { $gt: Date.now() },
+      verificationTokenExpires: {$gt: Date.now()},
     });
 
     if (!user) {
@@ -133,24 +140,24 @@ const verifyEmail = async (req, res) => {
 // POST /login/users
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email: email });
+    const {email, password} = req.body;
+    const user = await User.findOne({email: email});
     if (!user) {
-      return res.status(400).json({ message: "User does not exist" });
+      return res.status(400).json({message: "User does not exist"});
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid password" });
+      return res.status(400).json({message: "Invalid password"});
     }
     const isVerified = user.isVerified;
     if (!isVerified) {
       return res
         .status(400)
-        .json({ message: "Please verify your email first" });
+        .json({message: "Please verify your email first"});
     }
 
     // Log in expires automatically in 1 hour
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({id: user._id}, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
     delete user.password;
@@ -171,4 +178,4 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, verifyEmail, loginUser };
+module.exports = {registerUser, verifyEmail, loginUser};
