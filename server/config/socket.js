@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const socketIO = require("socket.io");
-const { corsOptions } = require("../config/config.js");
+const {corsOptions} = require("../config/config.js");
 const Message = require("../models/Message");
 const User = require("../models/User");
 const Group = require("../models/Group");
@@ -50,7 +50,7 @@ const initializeSocket = (server) => {
     /*
       Join group chat room
      */
-    socket.on("chat:join", async ({ groupId }) => {
+    socket.on("chat:join", async ({groupId}) => {
       try {
         // Verify user is a member of the group
         const group = await Group.findOne({
@@ -71,16 +71,16 @@ const initializeSocket = (server) => {
         // Notify room members
         socket.to(roomId).emit("message:bot", {
           message: `${socket.user.username} joined the room`,
-          user: { id: userId, username: socket.user.username },
+          user: {id: userId, username: socket.user.username},
         });
 
         // Send confirmation to the user
-        socket.emit("chat:joined", { groupId, groupName });
+        socket.emit("chat:joined", {groupId, groupName});
 
         // Auto-load recent messages
-        const recentMessages = await Message.find({ groupId })
-          .sort({ createdAt: -1 })
-          .limit(50)
+        const recentMessages = await Message.find({groupId})
+          .sort({createdAt: -1})
+          .limit(150)
           .lean();
 
         socket.emit("messages:history", {
@@ -93,7 +93,7 @@ const initializeSocket = (server) => {
           await Message.updateMany(
             {
               groupId,
-              "readBy.user": { $ne: userId },
+              "readBy.user": {$ne: userId},
             },
             {
               $push: {
@@ -122,12 +122,12 @@ const initializeSocket = (server) => {
     /*
       Leave chat room
      */
-    socket.on("chat:leave", ({ groupId }) => {
+    socket.on("chat:leave", ({groupId}) => {
       const roomId = `group:${groupId}`;
 
       socket.to(roomId).emit("message:bot", {
         message: `${socket.user.username} left the room`,
-        user: { id: userId, username: socket.user.username },
+        user: {id: userId, username: socket.user.username},
       });
 
       socket.leave(roomId);
@@ -184,7 +184,7 @@ const initializeSocket = (server) => {
             formatting: formatting,
           },
           attachments: attachments,
-          readBy: [{ user: userId, readAt: new Date() }],
+          readBy: [{user: userId, readAt: new Date()}],
         });
         await message.save();
 
@@ -223,7 +223,53 @@ const initializeSocket = (server) => {
       }
     });
 
-    socket.on("message:delete", async ({ messageId }) => {
+    /*
+      Edit message
+     */
+    socket.on("message:edit", async ({ messageId, text, formatting }) => {
+      try {
+        if (!mongoose.Types.ObjectId.isValid(messageId)) {
+          return socket.emit("error", "Invalid message ID");
+        }
+
+        const message = await Message.findById(messageId);
+
+        if (!message) {
+          return socket.emit("error", "Message not found");
+        }
+
+        // Check if user is the message sender
+        if (message.sender.userId.toString() !== userId.toString()) {
+          return socket.emit("error", "You can only edit your own messages");
+        }
+
+        // Update message
+        message.content.text = text;
+        if (formatting) {
+          message.content.formatting = formatting;
+        }
+        message.edited = true;
+        message.editedAt = new Date();
+
+        await message.save();
+
+        // Broadcast edited message
+        io.to(`group:${message.groupId}`).emit("message:edited", {
+          messageId: message._id,
+          text: text,
+          formatting: message.content.formatting,
+          editedAt: message.editedAt
+        });
+      } catch (error) {
+        console.error("Error editing message:", error);
+        socket.emit("error", "Failed to edit message");
+      }
+    });
+
+    /*
+      Delete message
+     */
+    socket.on("message:delete", async ({messageId}) => {
       if (!mongoose.Types.ObjectId.isValid(messageId)) {
         return socket.emit("error", "Invalid  ID");
       }
@@ -259,6 +305,9 @@ const initializeSocket = (server) => {
 
     socket.on("disconnect", () => {
       console.log(`Client disconnected: ${socket.user.username}`);
+      // Remove user from online users map
+      usersOnline.delete(userId.toString());
+
     });
   });
 

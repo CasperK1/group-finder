@@ -5,10 +5,11 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const app = express();
 const {corsOptions} = require("./config/config.js");
+const {unknownEndpoint, errorHandler} = require("./middleware/errorHandler.js");
 const port = process.env.PORT || 3000;
 const connectDb = require("./config/db");
 const initializeSocket = require('./config/socket');
-const { authLimiter, apiLimiter } = require('./middleware/rateLimiter');
+const {authLimiter, apiLimiter} = require('./middleware/rateLimiter');
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const groupRouter = require("./routes/groupRouter");
@@ -34,11 +35,8 @@ app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/groups", groupRouter);
 app.use("/api/files", fileRouter);
-app.use((req, res, next) => {
-  const error = new Error('Not Found');
-  error.status = 404;
-  next(error);
-});
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 const startServer = async () => {
   try {
