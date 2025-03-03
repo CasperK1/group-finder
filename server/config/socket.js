@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const socketIO = require("socket.io");
-const {corsOptions} = require("../config/config.js");
+const { corsOptions } = require("../config/config.js");
 const Message = require("../models/Message");
 const User = require("../models/User");
 const Group = require("../models/Group");
@@ -50,7 +50,7 @@ const initializeSocket = (server) => {
     /*
       Join group chat room
      */
-    socket.on("chat:join", async ({groupId}) => {
+    socket.on("chat:join", async ({ groupId }) => {
       try {
         // Verify user is a member of the group
         const group = await Group.findOne({
@@ -71,15 +71,15 @@ const initializeSocket = (server) => {
         // Notify room members
         socket.to(roomId).emit("message:bot", {
           message: `${socket.user.username} joined the room`,
-          user: {id: userId, username: socket.user.username},
+          user: { id: userId, username: socket.user.username },
         });
 
         // Send confirmation to the user
-        socket.emit("chat:joined", {groupId, groupName});
+        socket.emit("chat:joined", { groupId, groupName });
 
         // Auto-load recent messages
-        const recentMessages = await Message.find({groupId})
-          .sort({createdAt: -1})
+        const recentMessages = await Message.find({ groupId })
+          .sort({ createdAt: -1 })
           .limit(50)
           .lean();
 
@@ -93,7 +93,7 @@ const initializeSocket = (server) => {
           await Message.updateMany(
             {
               groupId,
-              "readBy.user": {$ne: userId},
+              "readBy.user": { $ne: userId },
             },
             {
               $push: {
@@ -122,12 +122,12 @@ const initializeSocket = (server) => {
     /*
       Leave chat room
      */
-    socket.on("chat:leave", ({groupId}) => {
+    socket.on("chat:leave", ({ groupId }) => {
       const roomId = `group:${groupId}`;
 
       socket.to(roomId).emit("message:bot", {
         message: `${socket.user.username} left the room`,
-        user: {id: userId, username: socket.user.username},
+        user: { id: userId, username: socket.user.username },
       });
 
       socket.leave(roomId);
@@ -136,7 +136,13 @@ const initializeSocket = (server) => {
     // Send group chat message
     socket.on("message:group", async (data) => {
       try {
-        const {groupId, text, mentions = [], formatting = {}, attachments = []} = data;
+        const {
+          groupId,
+          text,
+          mentions = [],
+          formatting = {},
+          attachments = [],
+        } = data;
 
         if (!mongoose.Types.ObjectId.isValid(groupId)) {
           return socket.emit("error", "Invalid group ID");
@@ -161,7 +167,7 @@ const initializeSocket = (server) => {
             if (mongoose.Types.ObjectId.isValid(mention.userId)) {
               processedMentions.push({
                 user: mention.userId,
-                username: mention.username
+                username: mention.username,
               });
             }
           }
@@ -169,16 +175,16 @@ const initializeSocket = (server) => {
         const message = new Message({
           sender: {
             userId: userId,
-            username: socket.user.username
+            username: socket.user.username,
           },
           groupId: groupId,
           content: {
             text: text,
             mentions: processedMentions,
-            formatting: formatting
+            formatting: formatting,
           },
           attachments: attachments,
-          readBy: [{user: userId, readAt: new Date()}]
+          readBy: [{ user: userId, readAt: new Date() }],
         });
         await message.save();
 
@@ -188,18 +194,18 @@ const initializeSocket = (server) => {
             _id: message._id,
             sender: {
               userId: userId,
-              username: socket.user.username
+              username: socket.user.username,
             },
             groupId: groupId,
             content: {
               text: text,
               mentions: processedMentions,
-              formatting: formatting
+              formatting: formatting,
             },
             attachments: attachments,
             createdAt: message.createdAt,
-            readBy: message.readBy
-          }
+            readBy: message.readBy,
+          },
         });
 
         // Send notifications to mentioned users
@@ -208,12 +214,46 @@ const initializeSocket = (server) => {
             messageId: message._id,
             groupId: groupId,
             senderName: socket.user.username,
-            text: text
+            text: text,
           });
         }
       } catch (error) {
         console.error("Error sending message:", error);
         socket.emit("error", "Error sending message");
+      }
+    });
+
+    socket.on("message:delete", async ({ messageId }) => {
+      if (!mongoose.Types.ObjectId.isValid(messageId)) {
+        return socket.emit("error", "Invalid  ID");
+      }
+
+      try {
+        const message = await Message.findById(messageId);
+
+        if (!message) {
+          return socket.emit("error", "Message not found");
+        }
+
+        // Check if user is the message sender
+        if (message.sender.userId.toString() !== userId.toString()) {
+          return socket.emit("error", "You can only delete your own messages");
+        }
+
+        message.deleted = true;
+        message.deletedAt = new Date();
+        message.content.text = "This message has been deleted";
+
+        await message.save();
+
+        // Broadcast deleted message
+        io.to(`group:${message.groupId}`).emit("message:deleted", {
+          messageId: message._id,
+          deletedAt: message.deletedAt,
+        });
+      } catch (error) {
+        console.error("Error deleting message:", error);
+        socket.emit("error", "Error deleting message");
       }
     });
 
@@ -225,9 +265,8 @@ const initializeSocket = (server) => {
   return io;
 };
 
-
 function notifyMentionedUsers(io, mentions, messageInfo) {
-  mentions.forEach(mention => {
+  mentions.forEach((mention) => {
     const mentionedUserId = mention.user.toString();
 
     // Check if mentioned user is online
@@ -239,11 +278,10 @@ function notifyMentionedUsers(io, mentions, messageInfo) {
         messageId: messageInfo.messageId,
         groupId: messageInfo.groupId,
         senderName: messageInfo.senderName,
-        text: messageInfo.text
+        text: messageInfo.text,
       });
     }
   });
 }
-
 
 module.exports = initializeSocket;
