@@ -4,7 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const app = express();
-const {corsOptions} = require("./config/config.js");
+const {corsOptions, rootRouter} = require("./config/config.js");
 const {unknownEndpoint, errorHandler} = require("./middleware/errorHandler.js");
 const port = process.env.PORT || 3000;
 const connectDb = require("./config/db");
@@ -14,8 +14,9 @@ const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const groupRouter = require("./routes/groupRouter");
 const fileRouter = require("./routes/fileRouter");
+app.set('trust proxy', 1);
 
-// Basic middleware
+// Middleware
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(helmet());
@@ -31,12 +32,14 @@ app.use('/api/auth', authLimiter);
 app.use('/api', apiLimiter);
 
 // Routes
+app.use('/', rootRouter);
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/groups", groupRouter);
 app.use("/api/files", fileRouter);
 app.use(unknownEndpoint)
 app.use(errorHandler)
+
 
 const startServer = async () => {
   try {

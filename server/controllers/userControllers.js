@@ -7,7 +7,7 @@ const Group = require("../models/group");
 // GET /api/users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-__v -password");
+    const users = await User.find().select("-__v -email -password");
     res.json(users);
   } catch (error) {
     res.status(500).json({message: error.message});
