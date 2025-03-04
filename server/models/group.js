@@ -53,7 +53,12 @@ const groupSchema = new mongoose.Schema(
         isArchived: { type: Boolean, default: false },
       },
     ],
-    events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
+    events: [{
+      title: {type: String, required: true},
+      description: {type: String, default: null},
+      dateTime: {type: Date, required: true}, // Contains both date and time
+      createdAt: {type: Date, default: Date.now}
+    }],
     settings: {
       // Toggle whether users can join the group freely or they need an invite
       inviteOnly: { type: Boolean, default: false },
