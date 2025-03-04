@@ -21,7 +21,7 @@ const {sendVerificationEmail} = require("../services/emailAuth");
 }
 */
 
-// POST /login/users
+// POST /register
 const registerUser = async (req, res) => {
   try {
     const {
@@ -45,12 +45,6 @@ const registerUser = async (req, res) => {
     const existingUsername = await User.findOne({username});
     if (existingUsername) {
       return res.status(400).json({message: "Username already exists"});
-    }
-    if (!validator.isEmail(email)) {
-      return res.status(400).json({message: "Email not valid"});
-    }
-    if (!validator.isStrongPassword(password)) {
-      return res.status(400).json({message: "Password not strong enough"});
     }
 
     // Generate verification token for email
@@ -105,7 +99,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// GET /login/users/verify-email?token=(User.verificationToken) NOTE: This is not the JWT token
+// GET /verify-email?token=(User.verificationToken) NOTE: This is not the JWT token
 const verifyEmail = async (req, res) => {
   try {
     const {token} = req.query;
@@ -137,7 +131,7 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-// POST /login/users
+// POST /login
 const loginUser = async (req, res) => {
   try {
     const {email, password} = req.body;

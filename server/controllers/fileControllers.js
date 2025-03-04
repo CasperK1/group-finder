@@ -3,9 +3,41 @@ const Group = require('../models/Group');
 const s3Service = require('../services/s3Service');
 const mongoose = require("mongoose");
 
-// TODO: getProfilePictures is not final. Still need a way to minimize S3 api calls (free tier limit)
-// GET /api/users/profile-pictures?userIds=id1,id2,id3 ...
-const getProfilePictures = async (req, res) => {
+
+// GET /api/files/profile-picture/:userId
+const getProfilePicture = async (req, res) => {
+  try {
+    const {userId} = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({message: "Invalid user ID"});
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({message: 'User not found'});
+    }
+    if (!user.profile.photo) {
+      return res.status(404).json({message: 'No profile picture found'});
+    }
+    // Generate a signed URL
+    const signedUrl = await s3Service.getFileDownloadUrl(user.profile.photo, 86400);
+
+    res.setHeader('Cache-Control', 'private, max-age=86400');
+    res.json({
+      userId: user._id,
+      photoUrl: signedUrl,
+      expiresAt: new Date(Date.now() + 86400000) // 24 hours in millisecond
+    });
+  } catch (error) {
+    console.error('Error fetching profile picture:', error);
+    res.status(500).json({
+      message: 'Failed to fetch profile picture',
+      error: error.message
+    });
+  }
+};
+
+// GET /api/files/profile-pictures?userIds=id1,id2,id3 ...
+const getMultipleProfilePictures = async (req, res) => {
   try {
     // Get array of user IDs from query parameter
     const userIds = req.query.userIds?.split(',') || [];
@@ -327,7 +359,8 @@ const deleteGroupFile = async (req, res) => {
 module.exports = {
   uploadProfileImage,
   deleteProfileImage,
-  getProfilePictures,
+  getProfilePicture,
+  getMultipleProfilePictures,
   uploadGroupFile,
   getGroupFiles,
   downloadGroupFile,

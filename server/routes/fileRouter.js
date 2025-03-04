@@ -5,7 +5,8 @@ const s3Service = require('../services/s3Service');
 const {
   uploadProfileImage,
   deleteProfileImage,
-  getProfilePictures,
+  getProfilePicture,
+  getMultipleProfilePictures,
   uploadGroupFile,
   getGroupFiles,
   downloadGroupFile,
@@ -22,7 +23,8 @@ const {
 // User files
 router.post('/upload/profile-picture', auth, s3Service.uploadProfilePicture(), uploadProfileImage);
 router.delete('/delete/profile-picture', auth, deleteProfileImage);
-router.get('/profile-pictures', auth, getProfilePictures);
+router.get('/profile-picture/:userId', auth, getProfilePicture);
+router.get('/profile-pictures', auth, getMultipleProfilePictures);
 
 // Group files
 router.get('/group/:groupId/', auth, getGroupFiles);
