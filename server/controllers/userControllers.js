@@ -1,6 +1,6 @@
-const User = require("../models/User");
+const User = require("../models/user");
 const mongoose = require("mongoose");
-const Group = require("../models/Group");
+const Group = require("../models/group");
 // TODO: Add pending invite check to joinGroup? Remove document and chat history field from the group query
 
 

@@ -3,8 +3,8 @@
 // Functions to create and delete events (only for owner/moderators)
 // Save group information as object to groupsJoined
 
-const Group = require("../models/Group");
-const User = require("../models/User");
+const Group = require("../models/group");
+const User = require("../models/user");
 const mongoose = require("mongoose");
 
 /* Example form for creating a group with only required fields:

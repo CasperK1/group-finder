@@ -1,9 +1,9 @@
 const jwt = require("jsonwebtoken");
 const socketIO = require("socket.io");
 const {corsOptions} = require("../config/config.js");
-const Message = require("../models/Message");
-const User = require("../models/User");
-const Group = require("../models/Group");
+const Message = require("../models/message");
+const User = require("../models/user");
+const Group = require("../models/group");
 const mongoose = require("mongoose");
 const usersOnline = new Map();
 
