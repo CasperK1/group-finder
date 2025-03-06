@@ -2,7 +2,6 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const validator = require("validator");
 const {sendVerificationEmail} = require("../services/emailAuth");
 // For testing. Required fields are email, username, password, firstName, lastName, major. Rest are optional.
 /*

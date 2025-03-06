@@ -1,48 +1,29 @@
-const express = require("express")
+require('dotenv').config();
 const http = require('http');
-const cors = require("cors");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const app = express();
-const {corsOptions} = require("./config/config.js");
-const {unknownEndpoint, errorHandler} = require("./middleware/errorHandler.js");
-const port = process.env.PORT || 3000;
+const app = require('./app');
 const connectDb = require("./config/db");
 const initializeSocket = require('./config/socket');
-const {authLimiter, apiLimiter} = require('./middleware/rateLimiter');
-const userRouter = require("./routes/userRouter");
-const authRouter = require("./routes/authRouter");
-const groupRouter = require("./routes/groupRouter");
-const fileRouter = require("./routes/fileRouter");
 
-// Basic middleware
-app.use(express.json());
-app.use(morgan("tiny"));
-app.use(helmet());
-app.use(cors(corsOptions));
+const port = process.env.PORT || 3000;
+
+// Create HTTP server
+const server = http.createServer(app);
 
 // Initialize Socket.IO with the server
-const server = http.createServer(app);
 const io = initializeSocket(server);
 app.set('io', io);
 
-// Apply rate limiters
-app.use('/api/auth', authLimiter);
-app.use('/api', apiLimiter);
-
-// Routes
-app.use("/api/users", userRouter);
-app.use("/api/auth", authRouter);
-app.use("/api/groups", groupRouter);
-app.use("/api/files", fileRouter);
-app.use(unknownEndpoint)
-app.use(errorHandler)
-
 const startServer = async () => {
   try {
+    // Connect to database
     await connectDb();
+
+    // Start server
     server.listen(port, () => {
       console.log(`Server running at http://localhost:${port}`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`API Documentation available at http://localhost:${port}/api-documentation`);
+      }
     });
   } catch (error) {
     console.log("Error starting server", error);
