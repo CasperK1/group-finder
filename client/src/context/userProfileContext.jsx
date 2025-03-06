@@ -10,11 +10,15 @@ export const useUserProfile = () => {
 export const UserProfileProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const jwt = localStorage.getItem('jwtToken');
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (!jwt || !user) {
+    return <div>Please log in to view your profile.</div>;
+  }
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const response = await apiService.user.getUserProfile({ token: jwt });
+        const response = await apiService.file.getProfilePicture({ token: jwt, userId: user.userId });
         if (response) {
           setUserProfile(response);
         } else {
@@ -22,10 +26,13 @@ export const UserProfileProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
+        setError('Error fetching profile.');
+      } finally {
       }
     };
+
     fetchUserProfile();
-  }, [jwt]);
+  }, []);
 
   return (
     <UserProfileContext.Provider value={userProfile}>
