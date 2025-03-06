@@ -133,7 +133,22 @@ const initializeSocket = (server) => {
       socket.leave(roomId);
     });
 
-    // Send group chat message
+    /*
+      Typing indicator
+    */
+    socket.on("message:typing", async ({groupId}) => {
+      if (!mongoose.Types.ObjectId.isValid(groupId)) {
+        return socket.emit("error", "Invalid group ID");
+      }
+      const roomId = `group:${groupId}`;
+      socket.to(roomId).emit("message:typing_status", {
+        user: {id: userId, username: socket.user.username}
+      });
+    })
+
+    /*
+      Send group chat message
+    */
     socket.on("message:group", async (data) => {
       try {
         const {
@@ -226,7 +241,7 @@ const initializeSocket = (server) => {
     /*
       Edit message
      */
-    socket.on("message:edit", async ({ messageId, text, formatting }) => {
+    socket.on("message:edit", async ({messageId, text, formatting}) => {
       try {
         if (!mongoose.Types.ObjectId.isValid(messageId)) {
           return socket.emit("error", "Invalid message ID");
@@ -305,6 +320,7 @@ const initializeSocket = (server) => {
 
     socket.on("disconnect", () => {
       console.log(`Client disconnected: ${socket.user.username}`);
+
       // Remove user from online users map
       usersOnline.delete(userId.toString());
 
