@@ -1,15 +1,25 @@
 // TODO:
 // Function to send group invites to users (only for owner/moderators)
+// Functions to create and delete events (only for owner/moderators)
+// Save group information as object to groupsJoined
 
 const Group = require("../models/Group");
 const User = require("../models/User");
 const mongoose = require("mongoose");
 
-/* Example form with only required fields:
+/* Example form for creating a group with only required fields:
 {
-    "name": "Cool Group",
+    "name": "Group Name",
     "city": "Helsinki",
     "groupSize": 4
+}
+*/
+
+
+/* Example form for creating an event with only required fields:
+{
+    "title": "Event Name",
+    "dateTime": "2025-03-15T14:30:00.000Z"
 }
 */
 
@@ -19,9 +29,9 @@ const getAllGroups = async (req, res) => {
         const groups = await Group.find()
         .select({ chatHistory: 0, documents: 0, events: 0 }) //Remove unnecessary fields
         .sort({ createdAt: -1 });
-        res.status(200).json(groups);
+        return res.status(200).json(groups);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -51,9 +61,9 @@ const getGroupInformation = async (req, res) => {
             return res.status(404).json({ message: "Group not found" });
         }
 
-        res.status(200).json(group);
+        return res.status(200).json(group);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -102,15 +112,14 @@ const createGroup = async (req, res) => {
  
         user.groupsJoined.push(group._id); // Add the group to the user's groupsJoined array
 
-        // Save the updated user and new group
         await user.save();
         await group.save();
 
-        res.status(201).json(group);
+        return res.status(201).json(group);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
-}
+};
 
 // PUT /api/groups/:groupId
 const updateGroup = async (req, res) => {
@@ -158,11 +167,11 @@ const updateGroup = async (req, res) => {
             runValidators: true
         });
 
-        res.status(200).json(updatedGroup);
+        return res.status(200).json(updatedGroup);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
-}
+};
 
 //PUT /api/groups/join/:groupId
 const joinGroup = async (req, res) => {
@@ -206,14 +215,13 @@ const joinGroup = async (req, res) => {
         group.members.push(userId); // Add current user to the groups members array
         user.groupsJoined.push(groupId); // Add the group to the user's groupsJoined array
 
-        // Save the changes made to the group and the user
         await Promise.all([group.save(), user.save()]);
 
-        res.status(200).json({ message: "Succesfully joined the group." });
+        return res.status(200).json({ message: "Succesfully joined the group." });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
-}
+};
 
 //PUT /api/groups/leave/:groupId
 const leaveGroup = async (req, res) => {
@@ -255,14 +263,13 @@ const leaveGroup = async (req, res) => {
         group.members.pull(userId); // Remove user from the group's members array
         user.groupsJoined.pull(groupId); // Remove the group from the user's groupsJoined array
 
-        // Save the changes made to the group and the user
         await Promise.all([group.save(), user.save()]);
 
-        res.status(200).json({ message: "Succesfully left the group." });
+        return res.status(200).json({ message: "Succesfully left the group." });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
-}
+};
 
 // DELETE /api//groups/:groupId
 const deleteGroup = async (req, res) => {
@@ -280,7 +287,7 @@ const deleteGroup = async (req, res) => {
             return res.status(404).json({ message: "Group not found" });
         }
 
-        // Prevent non-owner from deleting the group
+        // Prevent non-owners from deleting the group
         if (userId !== group.owner.toString()) { 
             return res.status(400).json({ message: "Only the group owner can delete the group!" })
         }
@@ -293,9 +300,9 @@ const deleteGroup = async (req, res) => {
 
         await Group.findByIdAndDelete(groupId); // Deletes the group from the database
 
-        res.status(204).send();
+        return res.status(204).send();
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -343,13 +350,13 @@ const addModerator = async (req, res) => {
         }
 
         group.moderators.push(moderatorId); // Add the new moderator to the group's moderators array
-        await group.save(); // Save the updated group
+        await group.save();
 
-        res.status(200).json({ message: "Succesfully added moderator!" });
+        return res.status(200).json({ message: "Succesfully added moderator!" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
-}
+};
 
 // PUT /api/groups/removeMod/:groupId
 const removeModerator = async (req, res) => {
@@ -395,13 +402,13 @@ const removeModerator = async (req, res) => {
         }
 
         group.moderators.pull(moderatorId); // Removes the moderator from the group's moderators array
-        await group.save(); // Saves the updated group
+        await group.save();
 
-        res.status(200).json({ message: "Successfully removed moderator." });
+        return res.status(200).json({ message: "Successfully removed moderator." });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
-}
+};
 
 // PUT /api/groups/owner/:groupId
 const changeOwner = async (req, res) => {
@@ -452,13 +459,13 @@ const changeOwner = async (req, res) => {
         }
 
         group.owner = ownerId; // Changes the owner to the new one
-        await group.save(); // Saves the updated group
+        await group.save();
 
-        res.status(200).json({ message: "Successfully changed group owner." });
+        return res.status(200).json({ message: "Successfully changed group owner." });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-}
+};
 
 // PUT /api/groups/kick/:groupId
 const kickMember = async (req, res) => {
@@ -514,14 +521,90 @@ const kickMember = async (req, res) => {
         group.members.pull(memberId); // Removes the member from the group's members array
         member.groupsJoined.pull(groupId); // Removes the member from the member's groupsJoined array
 
-        // Save the updated group and member
         await Promise.all([group.save(), member.save()]);
 
         return res.status(200).json({ message: "Member kicked succesfully." });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-}
+};
+
+// POST /api/groups/createEvent/:groupId
+const createEvent = async (req, res) => {
+    const userId = req.user.id;
+    const groupId = req.params.groupId;
+
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+        return res.status(400).json({ message: "Invalid group ID" });
+    }
+
+    try {
+        const group = await Group.findById(groupId);
+
+        if (!group) {
+            return res.status(404).json({ message: "Group not found" });
+        }
+        
+        // Prevents regular members from creating events
+        if (!group.moderators.includes(userId)) {
+            return res.status(400).json({ message: "Only moderators can add events!" });
+        }
+
+        const { title, description, dateTime } = req.body;
+
+        const newEvent = {
+            title,
+            description,
+            dateTime,
+            createdAt: new Date()
+        };
+
+        group.events.push(newEvent); // Adds the new event to the group's events array
+        await group.save();
+        
+        return res.status(201).json({ message: "Event created succesfully" });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// DELETE /api/groups/deleteEvent/:groupId
+const deleteEvent = async (req, res) => {
+    const userId = req.user.id;
+    const groupId = req.params.groupId;
+    const eventId = req.body.eventId;
+
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+        return res.status(400).json({ message: "Invalid group ID" });
+    }
+
+    if (!eventId) {
+        return res.status(400).json({ message: "No event provided" });
+    }
+
+    try {
+        const group = await Group.findById(groupId);
+        const event = group.events.id(eventId);
+
+        if (!group || !event) {
+            return res.status(404).json({ 
+                message: group ? "Event not found" : "Group not found"
+            });
+        }
+        
+        // Prevents regular members from deleting events
+        if (!group.moderators.includes(userId)) {
+            return res.status(400).json({ message: "Only moderators can delete events!" });
+        }
+
+        group.events.pull(event); // Removes the event from the group's events array
+        await group.save();
+        
+        return res.status(201).json({ message: "Event deleted succesfully" });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
 
 module.exports = {
     getAllGroups,
@@ -534,5 +617,7 @@ module.exports = {
     addModerator,
     removeModerator,
     changeOwner,
-    kickMember
+    kickMember,
+    createEvent,
+    deleteEvent
 }

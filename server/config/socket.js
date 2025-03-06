@@ -80,7 +80,7 @@ const initializeSocket = (server) => {
         // Auto-load recent messages
         const recentMessages = await Message.find({groupId})
           .sort({createdAt: -1})
-          .limit(50)
+          .limit(150)
           .lean();
 
         socket.emit("messages:history", {
@@ -136,7 +136,13 @@ const initializeSocket = (server) => {
     // Send group chat message
     socket.on("message:group", async (data) => {
       try {
-        const {groupId, text, mentions = [], formatting = {}, attachments = []} = data;
+        const {
+          groupId,
+          text,
+          mentions = [],
+          formatting = {},
+          attachments = [],
+        } = data;
 
         if (!mongoose.Types.ObjectId.isValid(groupId)) {
           return socket.emit("error", "Invalid group ID");
@@ -161,7 +167,7 @@ const initializeSocket = (server) => {
             if (mongoose.Types.ObjectId.isValid(mention.userId)) {
               processedMentions.push({
                 user: mention.userId,
-                username: mention.username
+                username: mention.username,
               });
             }
           }
@@ -169,16 +175,16 @@ const initializeSocket = (server) => {
         const message = new Message({
           sender: {
             userId: userId,
-            username: socket.user.username
+            username: socket.user.username,
           },
           groupId: groupId,
           content: {
             text: text,
             mentions: processedMentions,
-            formatting: formatting
+            formatting: formatting,
           },
           attachments: attachments,
-          readBy: [{user: userId, readAt: new Date()}]
+          readBy: [{user: userId, readAt: new Date()}],
         });
         await message.save();
 
@@ -188,18 +194,18 @@ const initializeSocket = (server) => {
             _id: message._id,
             sender: {
               userId: userId,
-              username: socket.user.username
+              username: socket.user.username,
             },
             groupId: groupId,
             content: {
               text: text,
               mentions: processedMentions,
-              formatting: formatting
+              formatting: formatting,
             },
             attachments: attachments,
             createdAt: message.createdAt,
-            readBy: message.readBy
-          }
+            readBy: message.readBy,
+          },
         });
 
         // Send notifications to mentioned users
@@ -208,7 +214,7 @@ const initializeSocket = (server) => {
             messageId: message._id,
             groupId: groupId,
             senderName: socket.user.username,
-            text: text
+            text: text,
           });
         }
       } catch (error) {
@@ -217,17 +223,99 @@ const initializeSocket = (server) => {
       }
     });
 
+    /*
+      Edit message
+     */
+    socket.on("message:edit", async ({ messageId, text, formatting }) => {
+      try {
+        if (!mongoose.Types.ObjectId.isValid(messageId)) {
+          return socket.emit("error", "Invalid message ID");
+        }
+
+        const message = await Message.findById(messageId);
+
+        if (!message) {
+          return socket.emit("error", "Message not found");
+        }
+
+        // Check if user is the message sender
+        if (message.sender.userId.toString() !== userId.toString()) {
+          return socket.emit("error", "You can only edit your own messages");
+        }
+
+        // Update message
+        message.content.text = text;
+        if (formatting) {
+          message.content.formatting = formatting;
+        }
+        message.edited = true;
+        message.editedAt = new Date();
+
+        await message.save();
+
+        // Broadcast edited message
+        io.to(`group:${message.groupId}`).emit("message:edited", {
+          messageId: message._id,
+          text: text,
+          formatting: message.content.formatting,
+          editedAt: message.editedAt
+        });
+      } catch (error) {
+        console.error("Error editing message:", error);
+        socket.emit("error", "Failed to edit message");
+      }
+    });
+
+    /*
+      Delete message
+     */
+    socket.on("message:delete", async ({messageId}) => {
+      if (!mongoose.Types.ObjectId.isValid(messageId)) {
+        return socket.emit("error", "Invalid  ID");
+      }
+
+      try {
+        const message = await Message.findById(messageId);
+
+        if (!message) {
+          return socket.emit("error", "Message not found");
+        }
+
+        // Check if user is the message sender
+        if (message.sender.userId.toString() !== userId.toString()) {
+          return socket.emit("error", "You can only delete your own messages");
+        }
+
+        message.deleted = true;
+        message.deletedAt = new Date();
+        message.content.text = "This message has been deleted";
+
+        await message.save();
+
+        // Broadcast deleted message
+        io.to(`group:${message.groupId}`).emit("message:deleted", {
+          messageId: message._id,
+          deletedAt: message.deletedAt,
+        });
+      } catch (error) {
+        console.error("Error deleting message:", error);
+        socket.emit("error", "Error deleting message");
+      }
+    });
+
     socket.on("disconnect", () => {
       console.log(`Client disconnected: ${socket.user.username}`);
+      // Remove user from online users map
+      usersOnline.delete(userId.toString());
+
     });
   });
 
   return io;
 };
 
-
 function notifyMentionedUsers(io, mentions, messageInfo) {
-  mentions.forEach(mention => {
+  mentions.forEach((mention) => {
     const mentionedUserId = mention.user.toString();
 
     // Check if mentioned user is online
@@ -239,11 +327,10 @@ function notifyMentionedUsers(io, mentions, messageInfo) {
         messageId: messageInfo.messageId,
         groupId: messageInfo.groupId,
         senderName: messageInfo.senderName,
-        text: messageInfo.text
+        text: messageInfo.text,
       });
     }
   });
 }
-
 
 module.exports = initializeSocket;

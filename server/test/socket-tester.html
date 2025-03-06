@@ -4,6 +4,7 @@
     <title>Socket.IO Tester</title>
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
     <link rel="stylesheet" href="socket-tester.css"/>
+
 </head>
 <body>
 <div class="container">
@@ -81,6 +82,12 @@
                         <button onclick="fillEventTemplate('messages:history')">
                             Load History
                         </button>
+                        <button onclick="fillEventTemplate('message:delete')">
+                            Delete Message
+                        </button>
+                        <button onclick="fillEventTemplate('message:edit')">
+                            Edit Message
+                        </button>
                     </div>
                 </div>
             </div>
@@ -142,6 +149,9 @@
   let userId = null;
   let username = null;
 
+  // Store messages for reference
+  let messageStore = {};
+
   // Socket connection
   function connect() {
     const token = jwtTokenEl.value.trim();
@@ -202,6 +212,7 @@
 
       // Clear previous messages
       chatMessagesEl.innerHTML = "";
+      messageStore = {};
       addChatMessage(
         "System",
         "You joined the chat room",
@@ -236,13 +247,91 @@
     // Handle new messages
     socket.on("message:new", (data) => {
       const messageData = data.message || data;
-
+      const messageId = messageData._id;
       const senderName = messageData.sender?.username || "Unknown";
       const messageContent = messageData.content?.text || "No content";
       const timestamp = new Date(messageData.createdAt || Date.now());
       const messageType = messageData.sender?.userId === userId ? "sent" : "received";
 
-      addChatMessage(senderName, messageContent, timestamp, messageType);
+      // Store the message data for reference
+      if (messageId) {
+        messageStore[messageId] = {
+          id: messageId,
+          text: messageContent,
+          sender: messageData.sender
+        };
+      }
+
+      addChatMessage(senderName, messageContent, timestamp, messageType, messageId);
+    });
+
+    // Handle edited messages
+    socket.on("message:edited", (data) => {
+      const { messageId, text, formatting, editedAt } = data;
+
+      // Update message store
+      if (messageStore[messageId]) {
+        messageStore[messageId].text = text;
+        if (formatting) {
+          messageStore[messageId].formatting = formatting;
+        }
+      }
+
+      // Update in UI
+      const messageEl = document.getElementById(`message-${messageId}`);
+      if (messageEl) {
+        const contentEl = messageEl.querySelector('.message-content');
+        if (contentEl) {
+          contentEl.textContent = text;
+
+          // Add edited indicator if not already there
+          if (!contentEl.querySelector('.edit-indicator')) {
+            const editedSpan = document.createElement('span');
+            editedSpan.className = 'edit-indicator';
+            editedSpan.textContent = ' (edited)';
+            editedSpan.style.fontSize = '11px';
+            editedSpan.style.color = '#888';
+            contentEl.appendChild(editedSpan);
+          }
+        }
+
+        // Update timestamp
+        const timeEl = messageEl.querySelector('.message-time');
+        if (timeEl) {
+          timeEl.textContent = formatTime(new Date(editedAt || Date.now()));
+        }
+      }
+
+      addEvent(`Message edited: ${messageId} - New text: ${text}`);
+    });
+
+    // Handle deleted messages
+    socket.on("message:deleted", (data) => {
+      const { messageId, deletedAt } = data;
+
+      // Update in UI
+      const messageEl = document.getElementById(`message-${messageId}`);
+      if (messageEl) {
+        const contentEl = messageEl.querySelector('.message-content');
+        if (contentEl) {
+          contentEl.textContent = "This message has been deleted";
+          contentEl.classList.add('deleted-message');
+        }
+
+        // Hide actions
+        const actionsEl = messageEl.querySelector('.message-actions');
+        if (actionsEl) {
+          actionsEl.style.display = 'none';
+        }
+
+        // Update timestamp
+        const timeEl = messageEl.querySelector('.message-time');
+        if (timeEl) {
+          timeEl.textContent = formatTime(new Date(deletedAt || Date.now()));
+        }
+      }
+
+      addEvent(`Message deleted: ${messageId}`);
     });
 
     // Handle user info
@@ -256,20 +345,33 @@
     socket.on("messages:history", (data) => {
       // Clear chat before adding history
       chatMessagesEl.innerHTML = "";
+      messageStore = {};
 
       if (data.messages && data.messages.length > 0) {
         data.messages.forEach((msg) => {
+          const messageId = msg._id;
           const senderName = msg.sender.username;
           const messageContent = msg.content.text;
           const timestamp = new Date(msg.createdAt);
           const messageType =
             msg.sender.userId === userId ? "sent" : "received";
 
+          // Store the message
+          if (messageId) {
+            messageStore[messageId] = {
+              id: messageId,
+              text: messageContent,
+              sender: msg.sender
+            };
+          }
+
           addChatMessage(
             senderName,
             messageContent,
             timestamp,
-            messageType
+            messageType,
+            messageId,
+            msg.deleted
           );
         });
 
@@ -375,9 +477,122 @@
     }
   }
 
-  function addChatMessage(sender, content, timestamp, type = "received") {
+  function editMessage(messageId) {
+    if (!socket || !socket.connected) {
+      alert("Not connected to server");
+      return;
+    }
+
+    const messageEl = document.getElementById(`message-${messageId}`);
+    if (!messageEl) return;
+
+    const contentEl = messageEl.querySelector('.message-content');
+    const currentText = messageStore[messageId]?.text || contentEl.textContent;
+
+    // Hide content and show edit input
+    contentEl.style.display = 'none';
+
+    // Create edit container if it doesn't exist
+    let editContainer = messageEl.querySelector('.edit-container');
+    if (!editContainer) {
+      editContainer = document.createElement('div');
+      editContainer.className = 'edit-container';
+      messageEl.insertBefore(editContainer, messageEl.querySelector('.message-time'));
+    }
+
+    // Create or update edit input
+    editContainer.innerHTML = `
+      <input type="text" class="edit-input" value="${currentText}" />
+      <div class="edit-buttons">
+        <button onclick="saveEdit('${messageId}')">Save</button>
+        <button onclick="cancelEdit('${messageId}')">Cancel</button>
+      </div>
+    `;
+
+    // Focus the input
+    setTimeout(() => {
+      const input = editContainer.querySelector('.edit-input');
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }, 0);
+  }
+
+  function saveEdit(messageId) {
+    const messageEl = document.getElementById(`message-${messageId}`);
+    if (!messageEl) return;
+
+    const editContainer = messageEl.querySelector('.edit-container');
+    const editInput = editContainer.querySelector('.edit-input');
+    const newText = editInput.value.trim();
+
+    if (!newText) {
+      alert("Message cannot be empty");
+      return;
+    }
+
+    // Emit edit event according to the server implementation
+    socket.emit("message:edit", {
+      messageId: messageId,
+      text: newText,
+      formatting: {} // Optional formatting if needed
+    });
+
+    // Update UI optimistically
+    const contentEl = messageEl.querySelector('.message-content');
+    contentEl.textContent = newText;
+    contentEl.style.display = 'block';
+
+    // Update stored message
+    if (messageStore[messageId]) {
+      messageStore[messageId].text = newText;
+    }
+
+    // Remove edit container
+    editContainer.remove();
+  }
+
+  function cancelEdit(messageId) {
+    const messageEl = document.getElementById(`message-${messageId}`);
+    if (!messageEl) return;
+
+    const contentEl = messageEl.querySelector('.message-content');
+    const editContainer = messageEl.querySelector('.edit-container');
+
+    // Show content again
+    contentEl.style.display = 'block';
+
+    // Remove edit container
+    editContainer.remove();
+  }
+
+  function deleteMessage(messageId) {
+    if (!socket || !socket.connected) {
+      alert("Not connected to server");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this message?")) {
+      return;
+    }
+
+    // Extract groupId from roomId (remove 'group:' prefix if present)
+    const groupId = roomId.startsWith("group:")
+      ? roomId.substring(6)
+      : roomId;
+
+    // Emit delete event
+    socket.emit("message:delete", {
+      messageId: messageId,
+      groupId: groupId
+    });
+  }
+
+  function addChatMessage(sender, content, timestamp, type = "received", messageId = null, isDeleted = false) {
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${type}`;
+    if (messageId) {
+      messageDiv.id = `message-${messageId}`;
+    }
 
     if (type !== "system") {
       const senderDiv = document.createElement("div");
@@ -388,13 +603,39 @@
 
     const contentDiv = document.createElement("div");
     contentDiv.className = "message-content";
-    contentDiv.textContent = content;
+
+    if (isDeleted) {
+      contentDiv.textContent = "This message has been deleted";
+      contentDiv.classList.add('deleted-message');
+    } else {
+      contentDiv.textContent = content;
+    }
+
     messageDiv.appendChild(contentDiv);
 
     const timeDiv = document.createElement("div");
     timeDiv.className = "message-time";
     timeDiv.textContent = formatTime(timestamp);
     messageDiv.appendChild(timeDiv);
+
+    // Add edit/delete buttons for sent messages
+    if (type === "sent" && messageId && !isDeleted) {
+      const actionsDiv = document.createElement("div");
+      actionsDiv.className = "message-actions";
+
+      const editButton = document.createElement("button");
+      editButton.textContent = "Edit";
+      editButton.onclick = () => editMessage(messageId);
+      actionsDiv.appendChild(editButton);
+
+      const deleteButton = document.createElement("button");
+      deleteButton.textContent = "Delete";
+      deleteButton.className = "danger";
+      deleteButton.onclick = () => deleteMessage(messageId);
+      actionsDiv.appendChild(deleteButton);
+
+      messageDiv.appendChild(actionsDiv);
+    }
 
     chatMessagesEl.appendChild(messageDiv);
     chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
@@ -439,24 +680,23 @@
 
     let data = {};
 
+    // Extract groupId from the current room if possible
+    const groupId = roomId && roomId.startsWith("group:")
+      ? roomId.substring(6)
+      : "no id";
+
     switch (eventType) {
       case "chat:join":
         data = {
-          groupId: "67bc8290158e85c603c00596", // Replace with actual group ID
+          groupId: "67bf28f6b71f3dd290e57c30", // Replace with actual group ID
         };
         break;
       case "chat:leave":
         data = {
-          groupId: "67bc8290158e85c603c00596", // Replace with actual group ID
+          groupId: "67bf28f6b71f3dd290e57c30", // Replace with actual group ID
         };
         break;
       case "message:group":
-        // Extract groupId from the current room if possible
-        const groupId =
-          roomId && roomId.startsWith("group:")
-            ? roomId.substring(6)
-            : "67bc8290158e85c603c00596";
-
         data = {
           groupId: groupId,
           text: "Hello everyone in the group!",
@@ -469,52 +709,43 @@
         };
         break;
       case "typing:start":
-        const typingGroupId =
-          roomId && roomId.startsWith("group:")
-            ? roomId.substring(6)
-            : "67bc8290158e85c603c00596";
-
         data = {
-          groupId: typingGroupId,
+          groupId: groupId,
         };
         break;
       case "typing:stop":
-        const stopTypingGroupId =
-          roomId && roomId.startsWith("group:")
-            ? roomId.substring(6)
-            : "67bc8290158e85c603c00596";
-
         data = {
-          groupId: stopTypingGroupId,
+          groupId: groupId,
         };
         break;
       case "messages:history":
-        const historyGroupId =
-          roomId && roomId.startsWith("group:")
-            ? roomId.substring(6)
-            : "67bc8290158e85c603c00596";
-
         data = {
-          groupId: historyGroupId,
-          limit: 20,
+          groupId: groupId,
+        };
+        break;
+      case "message:delete":
+        // Get the first message ID from messageStore if available
+        const messageIds = Object.keys(messageStore);
+        const messageToDelete = messageIds.length > 0 ? messageIds[0] : "message_id_here";
+        data = {
+          messageId: messageToDelete,
+          groupId: groupId
+        };
+        break;
+      case "message:edit":
+        // Get the first message ID from messageStore if available
+        const editMessageIds = Object.keys(messageStore);
+        const messageToEdit = editMessageIds.length > 0 ? editMessageIds[0] : "message_id_here";
+        data = {
+          messageId: messageToEdit,
+          text: "This is the edited text for the message.",
+          formatting: {}
         };
         break;
     }
 
     eventDataEl.value = JSON.stringify(data, null, 2);
   }
-
-  // Initialize
-  function init() {
-    disableChatInput();
-
-    // For demo/testing: generate a mock JWT
-    jwtTokenEl.value =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmM4MjkwMTU4ZTg1YzYwM2MwMDU5OCIsImlhdCI6MTcwNzE1NDA3MywiZXhwIjoxNzA3MTU3NjczfQ.W3xKABXPAvlDVl5_cdq3lX4I3JyPrXwJIfvj5x7kLVs";
-  }
-
-  // Run init on page load
-  init();
 </script>
 </body>
 </html>

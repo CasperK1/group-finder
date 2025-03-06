@@ -14,18 +14,46 @@ class S3Service {
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       },
     });
-    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+    this.redisAvailable = false;
+    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+  retryStrategy(times) {
+    if (times > 15) {
+      console.warn('Max Redis reconnection attempts reached, disabling Redis');
+      return null; // Stop retrying after 15 failed attempts
+    }
+    return Math.min(times * 100, 3000);
   }
+});
+
+    this.redis.on('connect', () => {
+      console.log('Redis connected successfully');
+      this.redisAvailable = true;
+    });
+
+    this.redis.on('error', (err) => {
+      console.warn('Redis connection error, running without caching:', err.message);
+      this.redisAvailable = false;
+    });
+  }
+
+
 
   // Signed URL for getting and downloading files from S3
   async getFileDownloadUrl(key, expiresIn = 900) {
     if (!key) return null;
-    // Check redis
-    const cacheKey = `s3url:${key}:${expiresIn}`;
-    const cachedUrl = await this.redis.get(cacheKey);
-    if (cachedUrl) {
-      console.log('Returning cached URL');
-      return cachedUrl;
+
+    if (this.redisAvailable) {
+      // Check redis cache
+      const cacheKey = `s3url:${key}:${expiresIn}`;
+      try {
+        const cachedUrl = await this.redis.get(cacheKey);
+        if (cachedUrl) {
+          console.log('Returning cached URL');
+          return cachedUrl;
+        }
+      } catch (err) {
+        console.warn('Redis read error, bypassing cache:', err.message);
+      }
     }
 
     try {
@@ -39,9 +67,14 @@ class S3Service {
         expiresIn: expiresIn
       });
       // Cache the URL with slightly shorter expiration to prevent serving expired URLs
-      const cacheTTL = Math.floor(expiresIn * 0.95);
-      await this.redis.set(cacheKey, signedUrl, 'EX', cacheTTL);
-
+      if (this.redisAvailable) {
+        try {
+          const cacheTTL = Math.floor(expiresIn * 0.95);
+          await this.redis.set(cacheKey, signedUrl, 'EX', cacheTTL);
+        } catch (err) {
+          console.warn('Redis write error, skipping cache:', err.message);
+        }
+      }
       return signedUrl;
     } catch (error) {
       console.error('Error generating download URL:', error);
