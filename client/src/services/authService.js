@@ -12,7 +12,6 @@ export const handleLogin = async (payload) => {
       console.error(`Error! Status: ${response.status}`);
       return;
     }
-    console.log('Login process is successful');
     return response.data;
   } catch (error) {
     console.error('Error during sign-in process:', error.message);
@@ -45,7 +44,6 @@ export const handleRegister = async (data) => {
       console.error(`Error! Status: ${response.status}`);
       return;
     }
-    console.log('Register process is successful');
     return response.data;
   } catch (error) {
     console.error('Error during register process:', error.message);

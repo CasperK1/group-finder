@@ -1,6 +1,6 @@
 // src/path.js
 
-export const apiBaseURL = `${process.env.REACT_APP_GROUP_FINDER}`;
+export const apiBaseURL = `${process.env.REACT_APP_GROUP_FINDER}/api`;
 
 export const apiPaths = {
   users: `${apiBaseURL}/users`,

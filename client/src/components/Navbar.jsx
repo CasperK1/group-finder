@@ -1,28 +1,13 @@
-import { useState, useEffect } from 'react';
+
 import { Link } from 'react-router-dom';
 import logo from '../assets/Groupfinderlogo.png';
 import { apiService } from '../services/api/apiService';
 import { useNavigate } from 'react-router-dom';
+import { useUserProfile } from '../context/userProfileContext';
 function Navbar() {
-  const [userProfile, setUserProfile] = useState(null);
   const token = localStorage.getItem('jwtToken');
-  const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate()
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const response = await apiService.user.getUserProfile({ token: token, id: user.userId });
-        if (response) {
-          setUserProfile(response);
-        } else {
-          console.log('No data received');
-        }
-      } catch (error) {
-        console.error('Error fetching group data:', error);
-      }
-    };
-    fetchUserProfile();
-  }, []);
+  const userProfile = useUserProfile();
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -76,7 +61,7 @@ function Navbar() {
           <div onClick={handleProfileClick} className="flex items-center cursor-pointer">
             <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-300">
               <img
-                src={userProfile ? userProfile.profile.photo : process.env.REACT_APP_DEFAULT_AVATAR_URL}
+                src={userProfile ? userProfile.photoUrl: process.env.REACT_APP_DEFAULT_AVATAR_URL}
                 alt={userProfile ? `${userProfile.name}'s profile` : 'Default Avatar'}
                 className="w-full h-full object-cover"
               />

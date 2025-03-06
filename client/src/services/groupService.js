@@ -41,8 +41,6 @@ export const getGroupInformationData = async ({token, groupId }) => {
   }
 };
 export const joinGroup = async (req) => {
-  console.log('req', req);
-  
   try {
     const url = `${apiPaths.groups}/join/${req.id}`;
     const response = await fetch(url, {
@@ -109,3 +107,4 @@ export const getGroupFiles = async (req) => {
     return null;
   }
 };
+

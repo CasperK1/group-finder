@@ -4,7 +4,7 @@ export const ProfileSection = ({userProfile, handleFileChange,fileInputRef, hand
         <div className="bg-white p-8 shadow-2xl rounded-lg flex flex-col items-center">
         <div className="w-32 h-32 bg-gray-300 rounded-full overflow-hidden mb-4 border-4 border-gray-400">
           <img
-            src={userProfile ? userProfile.profile.photo : process.env.REACT_APP_DEFAULT_AVATAR_URL}
+            src={userProfile ? userProfile.photoUrl : process.env.REACT_APP_DEFAULT_AVATAR_URL}
             alt={userProfile ? `${userProfile.name}'s profile` : 'Default Avatar'}
             className="w-full h-full object-cover"
           />

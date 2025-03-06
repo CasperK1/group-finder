@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
 import { AuthProvider } from './provider/AuthProvider';
 import ProtectedRoute from './ProtectedRoute';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
@@ -13,12 +14,13 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import GroupInformation from './components/Group/GroupInformation';
 import { apiPaths } from './path';
-
-
-function Layout() {
+import { apiService } from './services/api/apiService';
+import { UserProfileProvider } from './context/userProfileContext';
+function Layout({ userProfile }) {
   const location = useLocation();
   const isDashboard = location.pathname === '/' || location.pathname.startsWith('/your-groups');
   const isAboutPage = location.pathname === '/about'; //  footer only on About page
+  console.log(userProfile);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -35,7 +37,7 @@ function Layout() {
         )}
 
         {/* Main Content */}
-        <main className={`flex-1 p-6 ${isDashboard ? "ml-64" : ""}`}>
+        <main className={`flex-1 p-6 ${isDashboard ? 'ml-64' : ''}`}>
           <Outlet />
         </main>
       </div>
@@ -45,28 +47,36 @@ function Layout() {
         <footer className="w-full bg-white p-8 shadow-xl">
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
             <div>
-              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">Phong</h4>
+              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">
+                Phong
+              </h4>
               <ul className="text-gray-600 text-md space-y-3 mt-3">
                 <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UI desing</li>
                 <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UX design</li>
               </ul>
             </div>
             <div>
-              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">Leevi</h4>
+              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">
+                Leevi
+              </h4>
               <ul className="text-gray-600 text-md space-y-3 mt-3">
                 <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UI desing</li>
                 <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UX design</li>
               </ul>
             </div>
             <div>
-              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">Casper</h4>
+              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">
+                Casper
+              </h4>
               <ul className="text-gray-600 text-md space-y-3 mt-3">
                 <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
                 <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
               </ul>
             </div>
             <div>
-              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">Tino</h4>
+              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">
+                Tino
+              </h4>
               <ul className="text-gray-600 text-md space-y-3 mt-3">
                 <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
                 <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
@@ -79,18 +89,16 @@ function Layout() {
   );
 }
 
-
-
 const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
     children: [
       {
-        index: true, 
+        index: true,
         element: (
           <>
-            <GroupsList allGroup={true}/>
+            <GroupsList allGroup={true} />
           </>
         ),
       },
@@ -104,10 +112,12 @@ const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        element:// (
+        // (
+        element: (
           //<ProtectedRoute>
-            <SettingsPage />,
-          //</ProtectedRoute>
+          <SettingsPage />
+        ),
+        //</ProtectedRoute>
         //),
       },
       {
@@ -135,9 +145,30 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+  const [userProfile, setUserProfile] = useState(null);
+  const jwt = localStorage.getItem('jwtToken');
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await apiService.user.getUserProfile({ token: jwt });
+        if (response) {
+          setUserProfile(response);
+        } else {
+          console.log('No data received');
+        }
+      } catch (error) {
+        console.error('Error fetching group data:', error);
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <UserProfileProvider>
+        <RouterProvider router={router} />
+      </UserProfileProvider>
     </AuthProvider>
   );
 }

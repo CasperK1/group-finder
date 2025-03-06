@@ -42,3 +42,22 @@ export const getUserProfile = async (req) => {
   }
 };
 
+export const getGroupJoined = async ({token, groupId }) => {
+  try {
+    const url = `${apiPaths.users}/groups/joined`
+    const response = await axios.get(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.status !== 200) {
+      console.error(`Error! Status: ${response.status}`);
+      return null;
+    }
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching group data:', error.response ? error.response.data : error.message);
+    return null;
+  }
+};
