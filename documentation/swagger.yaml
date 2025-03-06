@@ -1,0 +1,2050 @@
+openapi: 3.0.0
+info:
+  title: Study Group Finder API
+  description: API documentation for the Study Group Finder application
+  version: 1.0.0
+  contact:
+    email: support@studygroupfinder.com
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: Not yet
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+        error:
+          type: string
+          description: Detailed error information (in development)
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+          description: Unique identifier for the user
+        email:
+          type: string
+          format: email
+          description: User's email address
+        username:
+          type: string
+          description: User's username
+        admin:
+          type: boolean
+          description: Whether the user is an admin
+        profile:
+          type: object
+          properties:
+            firstName:
+              type: string
+              description: User's first name
+            lastName:
+              type: string
+              description: User's last name
+            photo:
+              type: string
+              description: S3 key for the user's profile photo
+            bio:
+              type: string
+              description: User's biography
+            major:
+              type: string
+              description: User's major
+            academicInterests:
+              type: array
+              items:
+                type: string
+              description: User's academic interests
+            timePreference:
+              type: string
+              enum: [morning, afternoon, evening, flexible]
+              description: User's preferred study time
+            locationPreference:
+              type: string
+              enum: [on-campus, off-campus, online, flexible]
+              description: User's preferred study location
+            groupSizePreference:
+              type: integer
+              minimum: 2
+              maximum: 10
+              description: User's preferred group size
+            skillLevels:
+              type: array
+              items:
+                type: object
+                properties:
+                  subject:
+                    type: string
+                    description: Subject name
+                  level:
+                    type: string
+                    enum: [beginner, intermediate, advanced]
+                    description: Skill level in the subject
+        groupsJoined:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of groups the user has joined
+        settings:
+          type: object
+          properties:
+            profileVisibility:
+              type: string
+              enum: [public, private]
+              description: Profile visibility setting
+            emailNotifications:
+              type: boolean
+              description: Whether email notifications are enabled
+        isVerified:
+          type: boolean
+          description: Whether the user's email is verified
+        createdAt:
+          type: string
+          format: date-time
+          description: When the user was created
+
+    Group:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+          description: Unique identifier for the group
+        owner:
+          type: string
+          format: uuid
+          description: ID of the group owner
+        members:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of group members
+        moderators:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of group moderators
+        information:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Group name
+            photo:
+              type: string
+              description: S3 key for the group photo
+            bio:
+              type: string
+              description: Group description
+            city:
+              type: string
+              description: City where the group is based
+            timePreference:
+              type: string
+              enum: [morning, afternoon, evening, flexible]
+              description: Group's preferred meeting time
+            location:
+              type: string
+              enum: [on-campus, off-campus, online, flexible]
+              description: Group's preferred meeting location
+            groupSize:
+              type: integer
+              minimum: 2
+              maximum: 10
+              description: Maximum group size
+            major:
+              type: string
+              description: Group's major focus
+            skillLevels:
+              type: array
+              items:
+                type: object
+                properties:
+                  subject:
+                    type: string
+                    description: Subject name
+                  level:
+                    type: string
+                    enum: [beginner, intermediate, advanced]
+                    description: Required skill level in the subject
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                format: uuid
+                description: Unique identifier for the event
+              title:
+                type: string
+                description: Event title
+              description:
+                type: string
+                description: Event description
+              dateTime:
+                type: string
+                format: date-time
+                description: Date and time of the event
+              createdAt:
+                type: string
+                format: date-time
+                description: When the event was created
+        settings:
+          type: object
+          properties:
+            inviteOnly:
+              type: boolean
+              description: Whether the group is invite-only
+        createdAt:
+          type: string
+          format: date-time
+          description: When the group was created
+
+    Document:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+          description: Unique identifier for the document
+        key:
+          type: string
+          description: S3 key for the file
+        originalName:
+          type: string
+          description: Original filename
+        fileType:
+          type: string
+          description: File extension
+        size:
+          type: integer
+          description: File size in bytes
+        uploadedBy:
+          type: string
+          format: uuid
+          description: ID of the user who uploaded the file
+        username:
+          type: string
+          description: Username of the uploader
+        description:
+          type: string
+          description: File description
+        tags:
+          type: array
+          items:
+            type: string
+          description: File tags
+        downloads:
+          type: integer
+          description: Number of downloads
+        uploadedAt:
+          type: string
+          format: date-time
+          description: When the file was uploaded
+        lastModified:
+          type: string
+          format: date-time
+          description: When the file was last modified
+        isArchived:
+          type: boolean
+          description: Whether the file is archived
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+        password:
+          type: string
+          format: password
+          description: User's password
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - username
+        - password
+        - firstName
+        - lastName
+        - major
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+        username:
+          type: string
+          description: User's username
+        password:
+          type: string
+          format: password
+          description: User's password
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+        major:
+          type: string
+          description: User's major
+        academicInterests:
+          type: array
+          items:
+            type: string
+          description: User's academic interests
+        bio:
+          type: string
+          description: User's biography
+        timePreference:
+          type: string
+          enum: [morning, afternoon, evening, flexible]
+          description: User's preferred study time
+        locationPreference:
+          type: string
+          enum: [on-campus, off-campus, online, flexible]
+          description: User's preferred study location
+        groupSizePreference:
+          type: integer
+          minimum: 2
+          maximum: 10
+          description: User's preferred group size
+
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+        token:
+          type: string
+          description: JWT token for authentication
+        userId:
+          type: string
+          format: uuid
+          description: User ID
+        email:
+          type: string
+          format: email
+          description: User's email
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the registration was successful
+        data:
+          $ref: '#/components/schemas/User'
+        message:
+          type: string
+          description: Success message
+
+    UserUpdateRequest:
+      type: object
+      properties:
+        profile:
+          type: object
+          properties:
+            firstName:
+              type: string
+              description: User's first name
+            lastName:
+              type: string
+              description: User's last name
+            bio:
+              type: string
+              description: User's biography
+            major:
+              type: string
+              description: User's major
+            academicInterests:
+              type: array
+              items:
+                type: string
+              description: User's academic interests
+            timePreference:
+              type: string
+              enum: [morning, afternoon, evening, flexible]
+              description: User's preferred study time
+            locationPreference:
+              type: string
+              enum: [on-campus, off-campus, online, flexible]
+              description: User's preferred study location
+            groupSizePreference:
+              type: integer
+              minimum: 2
+              maximum: 10
+              description: User's preferred group size
+        settings:
+          type: object
+          properties:
+            profileVisibility:
+              type: string
+              enum: [public, private]
+              description: Profile visibility setting
+            emailNotifications:
+              type: boolean
+              description: Whether email notifications are enabled
+
+    FileUploadResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+        photoUrl:
+          type: string
+          description: URL of the uploaded photo
+        file:
+          $ref: '#/components/schemas/Document'
+
+    FileListResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          description: Number of files
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+
+    ProfilePicturesResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: User ID
+        photoUrl:
+          type: string
+          description: URL of the profile picture
+        expiresAt:
+          type: string
+          format: date-time
+          description: When the URL expires
+
+    FileDownloadResponse:
+      type: object
+      properties:
+        downloadUrl:
+          type: string
+          description: URL to download the file
+        fileName:
+          type: string
+          description: Original filename
+        fileType:
+          type: string
+          description: File type
+        uploadedBy:
+          type: string
+          format: uuid
+          description: ID of the uploader
+        uploadedAt:
+          type: string
+          format: date-time
+          description: When the file was uploaded
+        downloads:
+          type: integer
+          description: Number of downloads
+        description:
+          type: string
+          description: File description
+        tags:
+          type: array
+          items:
+            type: string
+          description: File tags
+        expiresAt:
+          type: string
+          format: date-time
+          description: When the URL expires
+
+paths:
+  # Authentication Routes
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: Create a new user account with verification email
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Group Routes
+  /groups:
+    get:
+      summary: Get all groups
+      description: Retrieve a list of all groups with non-sensitive information
+      tags:
+        - Groups
+      responses:
+        '200':
+          description: List of groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new group
+      description: Create a new study group
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - city
+                - groupSize
+              properties:
+                name:
+                  type: string
+                  description: Group name
+                photo:
+                  type: string
+                  description: Group photo identifier
+                bio:
+                  type: string
+                  description: Group description
+                city:
+                  type: string
+                  description: City where the group is based
+                timePreference:
+                  type: string
+                  enum: [morning, afternoon, evening, flexible]
+                  description: Group's preferred meeting time
+                location:
+                  type: string
+                  enum: [on-campus, off-campus, online, flexible]
+                  description: Group's preferred meeting location
+                groupSize:
+                  type: integer
+                  minimum: 2
+                  maximum: 10
+                  description: Maximum group size
+                major:
+                  type: string
+                  description: Group's major focus
+                skillLevels:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      subject:
+                        type: string
+                      level:
+                        type: string
+                        enum: [beginner, intermediate, advanced]
+      responses:
+        '201':
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/{groupId}:
+    get:
+      summary: Get group information
+      description: Retrieve information about a specific group
+      tags:
+        - Groups
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      responses:
+        '200':
+          description: Group information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          description: Invalid group ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update group information
+      description: Update a group's information (owner only)
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                information:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    photo:
+                      type: string
+                    bio:
+                      type: string
+                    city:
+                      type: string
+                    timePreference:
+                      type: string
+                      enum: [morning, afternoon, evening, flexible]
+                    location:
+                      type: string
+                      enum: [on-campus, off-campus, online, flexible]
+                    groupSize:
+                      type: integer
+                      minimum: 2
+                      maximum: 10
+                    major:
+                      type: string
+                settings:
+                  type: object
+                  properties:
+                    inviteOnly:
+                      type: boolean
+      responses:
+        '200':
+          description: Group updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          description: Invalid request or unauthorized (not owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a group
+      description: Delete a group (owner only)
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      responses:
+        '204':
+          description: Group deleted successfully
+        '400':
+          description: Invalid group ID or unauthorized (not owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/auth/{groupId}:
+    get:
+      summary: Get group information (authenticated)
+      description: Retrieve information about a specific group including member-only content if authorized
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      responses:
+        '200':
+          description: Group information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          description: Invalid group ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/join/{groupId}:
+    put:
+      summary: Join a group
+      description: Join a group as a member
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      responses:
+        '200':
+          description: Successfully joined the group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Successfully joined the group.
+        '400':
+          description: Invalid request or already a member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Group is invite-only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/leave/{groupId}:
+    put:
+      summary: Leave a group
+      description: Leave a group (non-owners only)
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      responses:
+        '200':
+          description: Successfully left the group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Successfully left the group.
+        '400':
+          description: Invalid request, not a member, or owner trying to leave
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/addMod/{groupId}:
+    put:
+      summary: Add moderator
+      description: Add a group member as a moderator (owner only)
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  description: User ID to make moderator
+      responses:
+        '200':
+          description: Successfully added moderator
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Successfully added moderator!
+        '400':
+          description: Invalid request, not owner, user not member, or already moderator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/removeMod/{groupId}:
+    put:
+      summary: Remove moderator
+      description: Remove a user from moderator role (owner only)
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  description: User ID to remove as moderator
+      responses:
+        '200':
+          description: Successfully removed moderator
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Successfully removed moderator.
+        '400':
+          description: Invalid request, not owner, user not moderator, or trying to remove owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/owner/{groupId}:
+    put:
+      summary: Change group owner
+      description: Transfer group ownership to another member (owner only)
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  description: User ID of new owner
+      responses:
+        '200':
+          description: Successfully changed group owner
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Successfully changed group owner.
+        '400':
+          description: Invalid request, not owner, user not member, or self-assignment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/kick/{groupId}:
+    put:
+      summary: Kick member
+      description: Remove a member from the group (moderators only)
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  description: User ID to kick
+      responses:
+        '200':
+          description: Member kicked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Member kicked successfully.
+        '400':
+          description: Invalid request, not moderator, trying to kick owner/mod, or user not member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/createEvent/{groupId}:
+    post:
+      summary: Create group event
+      description: Create a new event for the group (moderators only)
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - dateTime
+              properties:
+                title:
+                  type: string
+                  description: Event title
+                description:
+                  type: string
+                  description: Event description
+                dateTime:
+                  type: string
+                  format: date-time
+                  description: Date and time of the event
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Event created successfully
+        '400':
+          description: Invalid request or not moderator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /groups/deleteEvent/{groupId}:
+    delete:
+      summary: Delete group event
+      description: Delete an event from the group (moderators only)
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - eventId
+              properties:
+                eventId:
+                  type: string
+                  description: Event ID to delete
+      responses:
+        '201':
+          description: Event deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Event deleted successfully
+        '400':
+          description: Invalid request or not moderator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group or event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/verify-email:
+    get:
+      summary: Verify user email
+      description: Verify user email using token from verification email
+      tags:
+        - Authentication
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Verification token
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Email verified successfully
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticate a user and get a JWT token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid credentials or email not verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # User Routes
+  /users:
+    get:
+      summary: Get all users
+      description: Retrieve a list of all users
+      tags:
+        - Users
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/profile/{userId}:
+    get:
+      summary: Get user profile by ID
+      description: Retrieve a user's public profile
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Profile is private
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/profile:
+    get:
+      summary: Get current user profile
+      description: Retrieve the current user's profile
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/groups/joined:
+    get:
+      summary: Get user's joined groups
+      description: Retrieve a list of groups the current user has joined
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of joined groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/settings:
+    put:
+      summary: Update user settings
+      description: Update the current user's profile and settings
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete user account
+      description: Delete the current user's account
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User 'John Doe' deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # File Routes
+  /files/upload/profile-picture:
+    post:
+      summary: Upload profile picture
+      description: Upload or update the current user's profile picture
+      tags:
+        - Files
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file to upload
+      responses:
+        '200':
+          description: Profile picture uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadResponse'
+        '400':
+          description: No file uploaded or invalid file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/delete/profile-picture:
+    delete:
+      summary: Delete profile picture
+      description: Delete the current user's profile picture
+      tags:
+        - Files
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile picture deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Profile picture deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No profile picture found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/profile-picture/{userId}:
+    get:
+      summary: Get profile picture for single user
+      description: Get profile picture for a specific user
+      tags:
+        - Files
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      responses:
+        '200':
+          description: Profile picture information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfilePicturesResponse'
+        '400':
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found or no profile picture
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/profile-pictures:
+    get:
+      summary: Get profile pictures for multiple users
+      description: Get profile pictures for multiple users
+      tags:
+        - Files
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userIds
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Comma-separated list of user IDs
+          example: "userId1,userId2,userId3"
+      responses:
+        '200':
+          description: List of profile pictures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfilePicturesResponse'
+        '400':
+          description: No user IDs provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/group/{groupId}:
+    get:
+      summary: Get group files
+      description: Get a list of files in a group
+      tags:
+        - Files
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      responses:
+        '200':
+          description: List of group files
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileListResponse'
+        '400':
+          description: Invalid group ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/upload/group/{groupId}:
+    post:
+      summary: Upload group file
+      description: Upload a file to a group
+      tags:
+        - Files
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload
+                description:
+                  type: string
+                  description: File description
+                tags:
+                  type: string
+                  description: Comma-separated list of tags
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadResponse'
+        '400':
+          description: No file uploaded or invalid ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not a group member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/group/{groupId}/{fileId}:
+    get:
+      summary: Download group file
+      description: Get a download URL for a group file
+      tags:
+        - Files
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: File ID
+      responses:
+        '200':
+          description: File download URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileDownloadResponse'
+        '400':
+          description: Invalid ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group or file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete group file
+      description: Delete a file from a group
+      tags:
+        - Files
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Group ID
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: File ID
+      responses:
+        '200':
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: File deleted successfully
+                  fileId:
+                    type: string
+                    format: uuid
+                    example: 507f1f77bcf86cd799439011
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group, user, or file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

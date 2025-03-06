@@ -1,7 +1,5 @@
 // TODO:
 // Function to send group invites to users (only for owner/moderators)
-// Functions to create and delete events (only for owner/moderators)
-// Save group information as object to groupsJoined
 
 const Group = require("../models/group");
 const User = require("../models/user");
@@ -61,7 +59,19 @@ const getGroupInformation = async (req, res) => {
             return res.status(404).json({ message: "Group not found" });
         }
 
-        return res.status(200).json(group);
+        const groupObj = group.toObject();
+
+        const memberInfo = await Promise.all(
+            group.members.map(memberId =>
+                User.findById(memberId).select(
+                    "username profile.firstName profile.lastName"
+                )
+            )
+        );
+
+        groupObj.members = memberInfo;
+
+        return res.status(200).json(groupObj);
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }

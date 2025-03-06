@@ -35,10 +35,8 @@ function GroupsList({ allGroup, ownGroup }) {
         let response;
         if (allGroup) {
           response = await apiService.group.getAllGroups({ token: jwt });
-          console.log('Fetching all groups');
         } else if (ownGroup) {
           response = await apiService.user.getGroupJoined({ token: jwt });
-          console.log('Fetching user joined groups');
         }
         if (!response) {
           console.log('No data received');

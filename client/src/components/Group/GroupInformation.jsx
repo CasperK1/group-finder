@@ -16,8 +16,7 @@ function GroupInformation() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
   const jwt = localStorage.getItem('jwtToken');
-  console.log(jwt);
-  
+
   const { user } = useContext(AuthContext);
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -127,6 +126,7 @@ function GroupInformation() {
       <GroupDescription description={groupData.information.bio} />
       {isJoined && (
         <GroupTabs
+        groupData={groupData}
           isJoined={isJoined}
           groupUsers={groupUsers}
           groupId={id}

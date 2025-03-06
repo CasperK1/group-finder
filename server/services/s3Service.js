@@ -26,7 +26,7 @@ class S3Service {
 });
 
     this.redis.on('connect', () => {
-      console.log('Redis connected successfully');
+      console.log(`Redis connected successfully @ ${process.env.REDIS_URL}`);
       this.redisAvailable = true;
     });
 
@@ -41,10 +41,9 @@ class S3Service {
   // Signed URL for getting and downloading files from S3
   async getFileDownloadUrl(key, expiresIn = 900) {
     if (!key) return null;
-
+    const cacheKey = `s3url:${key}:${expiresIn}`;
     if (this.redisAvailable) {
       // Check redis cache
-      const cacheKey = `s3url:${key}:${expiresIn}`;
       try {
         const cachedUrl = await this.redis.get(cacheKey);
         if (cachedUrl) {

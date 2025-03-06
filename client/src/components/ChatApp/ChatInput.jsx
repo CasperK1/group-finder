@@ -1,5 +1,6 @@
-const ChatInput = ({ onSendMessage, setMessage, message }) => {
-  
+import { useState } from "react";
+const ChatInput = ({ onSendMessage, }) => {
+  const [message, setMessage] = useState("")
     const handleChange = (event) => {
       setMessage(event.target.value);
     };

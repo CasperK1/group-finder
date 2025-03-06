@@ -1,10 +1,10 @@
 import React from 'react';
+import logo from '../assets/Groupfinderlogo.png';
 
 const Logo = () => {
   return (
-    <div className="flex items-center w-full bg-white p-2">
-      <img src="https://placehold.co/24x24" alt="Group Finder Logo" className="mx-2"/>
-      <span className="font-bold text-lg">GROUP <span className="text-blue-600">FINDER</span></span>
+    <div className="flex items-center bg-white py-4 px-6 shadow-md ">
+      <img src={logo} alt="Group Finder Logo" />
     </div>
   );
 };
