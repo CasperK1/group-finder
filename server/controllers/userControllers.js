@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const mongoose = require("mongoose");
 const Group = require("../models/Group");
+const bcrypt = require("bcrypt");
 // TODO: Add pending invite check to joinGroup? Remove document and chat history field from the group query
 
 
@@ -94,6 +95,12 @@ const updateUser = async (req, res) => {
         ...existingUser.settings.toObject(),
         ...updates.settings,
       };
+    }
+
+    if (updates.password){
+      const salt = await bcrypt.genSalt(10);
+     const hashedPassword = await bcrypt.hash(updates.password, salt);
+     updates.password = hashedPassword;
     }
 
     const updatedUser = await User.findByIdAndUpdate(req.user.id, updates, {
