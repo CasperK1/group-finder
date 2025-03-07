@@ -7,7 +7,7 @@ import { apiService } from '../../services/api/apiService';
 import { useSelector } from 'react-redux';
 import { AuthContext } from '../../provider/AuthProvider';
 import { useContext } from 'react';
-export const ChatApp = ({ userProfilePictures,toggleChatModal, groupId, groupData }) => {
+export const ChatApp = ({ userProfilePictures, toggleChatModal, groupId, groupData }) => {
   const [activeGroup, setActiveGroup] = useState(null);
   const [messages, setMessages] = useState([]);
   const [socket, setSocket] = useState(null);

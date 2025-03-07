@@ -17,7 +17,7 @@ function GroupsList({ allGroup, ownGroup }) {
   const navigate = useNavigate();
   const handleGroupSelect = (groupId) => {
     setSelectedGroupId(groupId);
-    jwt?navigate(`/group/${groupId}`) : navigate('/login');
+    jwt ? navigate(`/group/${groupId}`) : navigate('/login');
   };
 
   const handleBlockGroup = () => {
@@ -59,9 +59,7 @@ function GroupsList({ allGroup, ownGroup }) {
   return (
     <>
       <div className="header-section p-6 bg-base-200 rounded-xl shadow-lg mb-6" data-theme="light">
-        <h2 className="text-2xl font-bold text-base-content mb-4">
-          {`${groupData.length} Groups Found`}
-        </h2>
+        <h2 className="text-2xl font-bold text-base-content mb-4">{`${groupData.length} Groups Found`}</h2>
         <div className="flex items-center gap-4 flex-wrap">
           <input
             type="text"
@@ -81,11 +79,8 @@ function GroupsList({ allGroup, ownGroup }) {
           <div
             key={group._id}
             className={`bg-white w-80 p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer relative ${
-              selectedGroupId === group._id 
-                ? 'bg-blue-50 border-2 border-blue-500' 
-                : 'hover:bg-gray-50'
+              selectedGroupId === group._id ? 'bg-blue-50 border-2 border-blue-500' : 'hover:bg-gray-50'
             } w-96`}
-            
             onClick={() => handleGroupSelect(group._id)}
           >
             <GroupHeader groupData={group} groupName={group.information.name} className="mb-2" />

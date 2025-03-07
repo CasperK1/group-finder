@@ -34,7 +34,6 @@ export function GroupTabs({
       fetchGroupFiles();
     }
   }, [isJoined, groupId]);
-  console.log(userProfilePictures);
 
   useEffect(() => {
     const fetchGroupUserProfilePicture = async () => {
@@ -52,7 +51,7 @@ export function GroupTabs({
     };
     fetchGroupUserProfilePicture();
   }, []);
-  console.log(userProfilePictures);
+
   const filterPhoto = (user) => userProfilePictures.filter((userPic) => userPic.userId === user._id);
 
   return (

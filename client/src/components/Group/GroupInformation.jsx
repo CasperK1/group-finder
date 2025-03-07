@@ -69,8 +69,7 @@ function GroupInformation() {
       }
     };
     fetchGroupUserProfilePicture();
-  }, [isJoined,id, isJoined]);
-  console.log(userProfilePictures);
+  }, [isJoined, id, isJoined]);
 
   useEffect(() => {
     if (groupData) {
