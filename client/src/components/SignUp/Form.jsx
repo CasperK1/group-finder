@@ -5,7 +5,7 @@ import { apiService } from '../../services/api/apiService';
 
 import Modal from '../Modal';
 
-const loginPath = '/login'
+const loginPath = '/login';
 
 function SignUpForm() {
   const navigate = useNavigate();

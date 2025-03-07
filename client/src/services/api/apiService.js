@@ -1,6 +1,6 @@
 import { handleLogin, handleRegister } from '../authService';
-import { getGroupInformationData, getGroupFiles, joinGroup, leaveGroup, getAllGroups, } from '../groupService';
-import { getUserProfile, getAllUsers, getGroupJoined} from '../userService';
+import { getGroupInformationData, getGroupFiles, joinGroup, leaveGroup, getAllGroups } from '../groupService';
+import { getUserProfile, getAllUsers, getGroupJoined } from '../userService';
 import {
   uploadProfilePicture,
   getProfilePicture,
@@ -9,13 +9,12 @@ import {
   uploadGroupFile,
   deleteProfilePicture,
   deleteGroupFile,
-
 } from '../fileService';
 
 export const apiService = {
   auth: {
     handleLogin,
-    handleRegister
+    handleRegister,
   },
   group: {
     getGroupInformationData,
@@ -27,7 +26,7 @@ export const apiService = {
   user: {
     getAllUsers,
     getUserProfile,
-    getGroupJoined
+    getGroupJoined,
   },
   file: {
     uploadProfilePicture,
@@ -37,5 +36,5 @@ export const apiService = {
     uploadGroupFile,
     deleteProfilePicture,
     deleteGroupFile,
-  }
+  },
 };

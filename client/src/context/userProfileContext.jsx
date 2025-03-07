@@ -20,19 +20,17 @@ export const UserProfileProvider = ({ children }) => {
       setLoading(false);
       return;
     }
-
     setLoading(true);
     try {
       const response = await apiService.file.getProfilePicture({
         token: jwt,
-        userId: user.userId
+        userId: user.userId,
       });
 
       if (response) {
         setUserProfile(response);
         setError(null);
       } else {
-        // No error but also no profile picture
         setUserProfile(null);
       }
     } catch (err) {
@@ -70,12 +68,8 @@ export const UserProfileProvider = ({ children }) => {
     profile: userProfile,
     loading,
     error,
-    refreshProfile: refreshUserProfile
+    refreshProfile: refreshUserProfile,
   };
 
-  return (
-    <UserProfileContext.Provider value={contextValue}>
-      {children}
-    </UserProfileContext.Provider>
-  );
+  return <UserProfileContext.Provider value={contextValue}>{children}</UserProfileContext.Provider>;
 };

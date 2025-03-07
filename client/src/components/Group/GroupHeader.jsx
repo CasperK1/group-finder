@@ -1,6 +1,9 @@
 import React from 'react';
 
-export function GroupHeader({ groupUsers, groupInfo, groupData }) {
+export function GroupHeader({ userProfilePictures, groupUsers, groupInfo, groupData }) {
+  const filterPhoto = (user) => userProfilePictures.filter((userPic) => userPic.userId === user);
+  const groupMemberIds = groupUsers.map((user) => user._id);
+
   return (
     <div className="flex items-center mb-4">
       <div
@@ -18,10 +21,17 @@ export function GroupHeader({ groupUsers, groupInfo, groupData }) {
         )}
         <div className="avatar-group -space-x-6 rtl:space-x-reverse">
           {groupInfo &&
-            groupUsers.map((user, index) => (
+            groupMemberIds.map((id, index) => (
               <div key={index} className="avatar">
                 <div className="w-12">
-                  <img src={process.env.REACT_APP_DEFAULT_AVATAR_URL} alt={user} />
+                  <img
+                    src={
+                      userProfilePictures.length > 0
+                        ? filterPhoto(id)[0]?.photoUrl || process.env.REACT_APP_DEFAULT_AVATAR_URL
+                        : process.env.REACT_APP_DEFAULT_AVATAR_URL
+                    }
+                    alt={id}
+                  />
                 </div>
               </div>
             ))}

@@ -2,14 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { apiService } from '../../services/api/apiService';
 import { ChatApp } from '../ChatApp/ChatApp';
 
-export function GroupTabs({ groupData,groupUsers, groupId, activeTab, setActiveTab, toggleChatModal, isChatOpen, isJoined }) {
+export function GroupTabs({
+  groupData,
+  groupUsers,
+  groupId,
+  activeTab,
+  setActiveTab,
+  toggleChatModal,
+  isChatOpen,
+  isJoined,
+}) {
   const [groupFiles, setGroupFiles] = useState(null);
+  const [userProfilePictures, setUserProfilePictures] = useState([]);
+
+  const jwt = localStorage.getItem('jwtToken');
+
   useEffect(() => {
-    const jwt = localStorage.getItem('jwtToken');
-    if(isJoined){
+    if (isJoined) {
       const fetchGroupFiles = async () => {
         try {
-          const response = await apiService.group.getGroupFiles({token: jwt, id: groupId });
+          const response = await apiService.group.getGroupFiles({ token: jwt, id: groupId });
           if (response) {
             setGroupFiles(response);
           } else {
@@ -22,6 +34,26 @@ export function GroupTabs({ groupData,groupUsers, groupId, activeTab, setActiveT
       fetchGroupFiles();
     }
   }, [isJoined, groupId]);
+  console.log(userProfilePictures);
+
+  useEffect(() => {
+    const fetchGroupUserProfilePicture = async () => {
+      try {
+        const groupMemberIds = groupData.members.map((member) => member._id);
+        const response = await apiService.file.getMultipleProfilePictures({ token: jwt, userIds: groupMemberIds });
+        if (response) {
+          setUserProfilePictures(response);
+        } else {
+          console.log('No data received');
+        }
+      } catch (error) {
+        console.error('Error fetching group data:', error);
+      }
+    };
+    fetchGroupUserProfilePicture();
+  }, []);
+  console.log(userProfilePictures);
+  const filterPhoto = (user) => userProfilePictures.filter((userPic) => userPic.userId === user._id);
 
   return (
     <div className="mb-4">
@@ -53,11 +85,17 @@ export function GroupTabs({ groupData,groupUsers, groupId, activeTab, setActiveT
         {activeTab === 'Documents' && <p className="text-gray-500">Here are your documents...</p>}
         {activeTab === 'Members' &&
           groupUsers.map((user, index) => (
-            <div  key={index} className="flex items-center space-x-2 mb-2">
+            <div key={index} className="flex items-center space-x-2 mb-2">
               <div className="avatar">
                 <div className="w-12 rounded-full">
-                  <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
-                  {/* updatelater */}
+                  <img
+                    src={
+                      userProfilePictures.length > 0
+                        ? filterPhoto(user)[0]?.photoUrl || process.env.REACT_APP_DEFAULT_AVATAR_URL
+                        : process.env.REACT_APP_DEFAULT_AVATAR_URL
+                    }
+                    alt={user}
+                  />
                 </div>
               </div>
               <p className="text-gray-500">{user.username}</p>
@@ -66,7 +104,16 @@ export function GroupTabs({ groupData,groupUsers, groupId, activeTab, setActiveT
         {activeTab === 'Meetings' && <p className="text-gray-500">Upcoming meetings schedule...</p>}
       </div>
 
-      <div>{isChatOpen && <ChatApp toggleChatModal={toggleChatModal} groupId={groupId} groupData={groupData}/>}</div>
+      <div>
+        {isChatOpen && (
+          <ChatApp
+            userProfilePictures={userProfilePictures}
+            toggleChatModal={toggleChatModal}
+            groupId={groupId}
+            groupData={groupData}
+          />
+        )}
+      </div>
     </div>
   );
 }

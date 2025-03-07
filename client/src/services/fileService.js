@@ -1,27 +1,27 @@
-import axios from "axios";
-import { apiPaths } from "../path";
+import axios from 'axios';
+import { apiPaths } from '../path';
 export const uploadProfilePicture = async (req) => {
-    const url = `${apiPaths.files}/upload/profile-picture`;
-    try {
-      const response = await axios.post(url, req.formData, {
-        headers: {
-          Authorization: `Bearer ${req.token}`,
-        },
-      });
-      return response.data
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
-    }
+  const url = `${apiPaths.files}/upload/profile-picture`;
+  try {
+    const response = await axios.post(url, req.formData, {
+      headers: {
+        Authorization: `Bearer ${req.token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading profile picture:', error);
+  }
 };
 
 export const getProfilePicture = async (req) => {
   const userId = req.userId;
-  const token  = req.token;
+  const token = req.token;
   try {
     const url = `${apiPaths.files}/profile-picture/${userId}/`;
     const response = await axios.get(url, {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });
@@ -32,15 +32,14 @@ export const getProfilePicture = async (req) => {
   }
 };
 
-
 export const getMultipleProfilePictures = async (req) => {
   const userIds = req.userIds;
-  const token  = req.token;
+  const token = req.token;
   try {
     const url = `${apiPaths.files}/profile-pictures/?userIds=${userIds.join(',')}`;
     const response = await axios.get(url, {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });
@@ -58,7 +57,7 @@ export const getGroupFiles = async (req) => {
     const url = `${apiPaths.files}/group/${groupId}`;
     const response = await axios.get(url, {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });
@@ -77,7 +76,7 @@ export const downloadGroupFile = async (req) => {
     const url = `${apiPaths.files}/group/${groupId}/${fileId}`;
     const response = await axios.get(url, {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });
@@ -140,4 +139,3 @@ export const deleteGroupFile = async (req) => {
     return null;
   }
 };
-

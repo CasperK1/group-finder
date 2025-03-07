@@ -1,3 +1,3 @@
 export const validateTesting = () => {
-    console.log('Testing...');
-}
+  console.log('Testing...');
+};

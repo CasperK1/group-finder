@@ -1,12 +1,16 @@
-import { useContext } from "react";
+import { useContext } from 'react';
 import InputField from './InputField';
 import PasswordField from './PasswordField';
 import { useNavigate } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { apiService } from '../../services/api/apiService';
-import { AuthContext } from "../../provider/AuthProvider";
+import { AuthContext } from '../../provider/AuthProvider';
+import { useDispatch } from 'react-redux';
+import { setUserData } from '../../redux/reducer/userDataSlice';
+
 function Form() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { login } = useContext(AuthContext);
   const {
     control,
@@ -20,8 +24,9 @@ function Form() {
       console.error('Error: Invalid response or token missing.');
     } else {
       localStorage.setItem('jwtToken', response.token);
+      dispatch(setUserData(response));
       login(response);
-      console.log('Token saved successfully.')
+      console.log('Token saved successfully.');
       navigate('/');
     }
   };
