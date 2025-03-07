@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from "react";
+import { apiService } from "../services/api/apiService";
 
 // Create Context
 export const AuthContext = createContext();
@@ -13,12 +14,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData)); 
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
+    // Clear user data
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("jwtToken");
   };
 
   return (

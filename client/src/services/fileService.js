@@ -50,3 +50,94 @@ export const getMultipleProfilePictures = async (req) => {
     return null;
   }
 };
+export const getGroupFiles = async (req) => {
+  const groupId = req.id;
+  const token = req.token;
+
+  try {
+    const url = `${apiPaths.files}/group/${groupId}`;
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching group files:', error.response ? error.response.data : error.message);
+    return null;
+  }
+};
+
+export const downloadGroupFile = async (req) => {
+  const { groupId, fileId } = req;
+  const token = req.token;
+
+  try {
+    const url = `${apiPaths.files}/group/${groupId}/${fileId}`;
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error downloading file:', error.response ? error.response.data : error.message);
+    return null;
+  }
+};
+
+export const uploadGroupFile = async (req) => {
+  const { id, formData } = req;
+  const token = req.token;
+
+  try {
+    const url = `${apiPaths.files}/upload/group/${id}`;
+    const response = await axios.post(url, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading group file:', error);
+    return null;
+  }
+};
+
+export const deleteProfilePicture = async (req) => {
+  const token = req.token;
+
+  try {
+    const url = `${apiPaths.files}/delete/profile-picture`;
+    const response = await axios.delete(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting profile picture:', error);
+    return null;
+  }
+};
+
+export const deleteGroupFile = async (req) => {
+  const { groupId, fileId } = req;
+  const token = req.token;
+
+  try {
+    const url = `${apiPaths.files}/group/${groupId}/${fileId}`;
+    const response = await axios.delete(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting group file:', error);
+    return null;
+  }
+};
+
