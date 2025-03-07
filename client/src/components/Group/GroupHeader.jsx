@@ -2,7 +2,7 @@ import React from 'react';
 
 export function GroupHeader({ userProfilePictures, groupUsers, groupInfo, groupData }) {
   const filterPhoto = (user) => userProfilePictures.filter((userPic) => userPic.userId === user);
-  const groupMemberIds = groupUsers.map((user) => user._id);
+  const groupMemberIds = groupUsers ? groupUsers.map((user) => user._id) : [];
 
   return (
     <div className="flex items-center mb-4">
