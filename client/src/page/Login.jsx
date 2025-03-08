@@ -11,7 +11,7 @@ const Login = () => {
 
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100" data-theme="light">
         <div className="bg-white w-full max-w-md p-8 rounded-lg shadow-md ">
-          <h2 className="text-2xl font-bold mb-6">Log in</h2>
+          <h2 className="text-2xl font-bold mb-6 text-blue-600">Login</h2>
           <Form />
           <TermsAndConditions />
           <div className="text-center mt-6">

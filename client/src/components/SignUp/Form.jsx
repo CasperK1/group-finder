@@ -35,7 +35,7 @@ function SignUpForm() {
   return (
     <div>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-black">
           <Controller
             name="firstName"
             control={control}
@@ -45,7 +45,7 @@ function SignUpForm() {
                 {...field}
                 type="text"
                 placeholder="First name"
-                className="border border-gray-300 p-2 rounded placeholder:text-xs"
+                className="border border-gray-300 p-2 rounded placeholder:text-xs "
               />
             )}
           />
@@ -63,7 +63,7 @@ function SignUpForm() {
             )}
           />
         </div>
-        <div className="mb-4">
+        <div className="mb-4 text-black">
           <Controller
             name="email"
             control={control}
@@ -84,7 +84,7 @@ function SignUpForm() {
             )}
           />
         </div>
-        <div className="mb-4">
+        <div className="mb-4 text-black">
           <Controller
             name="username"
             control={control}
@@ -99,7 +99,7 @@ function SignUpForm() {
             )}
           />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-black">
           <Controller
             name="password"
             control={control}
@@ -144,9 +144,9 @@ function SignUpForm() {
         <p className="text-gray-500 text-sm mb-4">Use 8 or more characters with a mix of letters, numbers & symbols</p>
         <button
           type="submit"
-          className="w-full py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
         >
-          Log in
+          Sign up
         </button>
       </form>
       {isModalVisible && <Modal message={modalMessage} onClose={handleNavigate} />}

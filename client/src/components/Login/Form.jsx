@@ -81,9 +81,9 @@ function Form() {
 
       <button
         type="submit"
-        className="w-full py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+        className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
       >
-        Log in
+        Login
       </button>
     </form>
   );
