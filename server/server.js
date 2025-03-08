@@ -15,8 +15,6 @@ app.set('io', io);
 
 const startServer = async () => {
   try {
-    // Connect to database
-    await connectDb();
 
     // Start server
     server.listen(port, () => {
