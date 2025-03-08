@@ -27,7 +27,9 @@ function Navbar() {
   return (
     <nav className="flex justify-between items-center w-full bg-white py-4 px-6 shadow-md">
       <div className="flex items-center">
-        <img src={logo} alt="Group Finder Logo" className="h-8" />
+        <Link to="/">
+          <img src={logo} alt="Group Finder Logo" className="h-8 cursor-pointer" />
+        </Link>
       </div>
 
       <ul className="flex space-x-8">
