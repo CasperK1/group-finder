@@ -18,6 +18,6 @@ router.get("/profile/:userId", getUserProfile);
 router.get("/profile/", auth, getUserProfile);
 router.get("/groups/joined", auth, getJoinedGroups);
 router.put("/settings", auth, updateUser);
-router.delete("/settings", auth, deleteUser);
+router.delete("/settings/delete", auth, deleteUser);
 
 module.exports = router;

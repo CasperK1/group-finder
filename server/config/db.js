@@ -2,28 +2,34 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const connectDb = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {});
+    if (process.env.NODE_ENV === 'test') {
+      await mongoose.connect(process.env.MONGODB_TEST_URI, {});
+      console.log('TEST DATABASE CONNECTED');
+    } else {
+      await mongoose.connect(process.env.MONGODB_URI, {})
 
-    // Basic Connection Info
-    console.log('\n=== Database Connection Info ===');
-    console.log('Database name:', mongoose.connection.name);
-    console.log('Database host:', mongoose.connection.host);
-    console.log('Database port:', mongoose.connection.port);
-    console.log('Connection state:', mongoose.STATES[mongoose.connection.readyState]);
 
-    // Database Statistics
-    const dbStats = await mongoose.connection.db.stats();
-    console.log('\n=== Database Statistics ===');
-    console.log('Collections:', dbStats.collections);
-    console.log('Total documents:', dbStats.objects);
-    console.log('Storage size:', (dbStats.storageSize / 1024 / 1024).toFixed(2) + ' MB');
+      // Basic Connection Info
+      console.log('\n=== Database Connection Info ===');
+      console.log('Database name:', mongoose.connection.name);
+      console.log('Database host:', mongoose.connection.host);
+      console.log('Database port:', mongoose.connection.port);
+      console.log('Connection state:', mongoose.STATES[mongoose.connection.readyState]);
 
-    // List Collections and Document Counts
-    const collections = await mongoose.connection.db.listCollections().toArray();
-    console.log('\n=== Collections Overview ===');
-    for (const collection of collections) {
-      const count = await mongoose.connection.db.collection(collection.name).countDocuments();
-      console.log(`${collection.name}: ${count} documents`);
+      // Database Statistics
+      const dbStats = await mongoose.connection.db.stats();
+      console.log('\n=== Database Statistics ===');
+      console.log('Collections:', dbStats.collections);
+      console.log('Total documents:', dbStats.objects);
+      console.log('Storage size:', (dbStats.storageSize / 1024 / 1024).toFixed(2) + ' MB');
+
+      // List Collections and Document Counts
+      const collections = await mongoose.connection.db.listCollections().toArray();
+      console.log('\n=== Collections Overview ===');
+      for (const collection of collections) {
+        const count = await mongoose.connection.db.collection(collection.name).countDocuments();
+        console.log(`${collection.name}: ${count} documents`);
+      }
     }
 
     // Monitor Connection Events
