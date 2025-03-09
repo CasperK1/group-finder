@@ -1,3 +1,3 @@
 export const useTest = () => {
-    console.log('test hook');
-}
+  console.log('test hook');
+};

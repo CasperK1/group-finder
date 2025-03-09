@@ -8,7 +8,6 @@ import { GroupFooter } from '../Group/GroupFooter';
 import { useNavigate } from 'react-router-dom';
 import { convertDate } from '../../utils/date';
 
-import {} from 'react';
 function GroupsList({ allGroup, ownGroup }) {
   const [loading, setLoading] = useState(true);
   const [groupData, setGroupData] = useState([]);
@@ -18,24 +17,25 @@ function GroupsList({ allGroup, ownGroup }) {
   const navigate = useNavigate();
   const handleGroupSelect = (groupId) => {
     setSelectedGroupId(groupId);
-    navigate(`/group/${groupId}`);
+    jwt ? navigate(`/group/${groupId}`) : navigate('/login');
   };
 
   const handleBlockGroup = () => {
-    console.log('Block')
-  }
+    console.log('Block');
+  };
   const handleSaveGroup = () => {
-    console.log('Save')
-  }
+    console.log('Save');
+  };
+
   useEffect(() => {
     const fetchGroupData = async () => {
       setLoading(true);
       try {
-        if (!jwt) return;
         let response;
         if (allGroup) {
-          response = await apiService.group.getAllGroups({ token: jwt });
+          response = await apiService.group.getAllGroups();
         } else if (ownGroup) {
+          if (!jwt) return;
           response = await apiService.user.getGroupJoined({ token: jwt });
         }
         if (!response) {
@@ -53,46 +53,50 @@ function GroupsList({ allGroup, ownGroup }) {
   }, [jwt, allGroup, ownGroup]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="text-center text-lg text-base-content">Loading...</div>;
   }
 
   return (
     <>
-      <div className="header-section p-4 bg-base-200 rounded-xl shadow-md mb-4">
-        <h2 className="text-lg font-semibold mb-2">{`${groupData.length} Groups Found`}</h2>
-        <div className="flex space-x-4 items-center">
+      <div className="header-section p-6 bg-base-200 rounded-xl shadow-lg mb-6" data-theme="light">
+        <h2 className="text-2xl font-bold text-base-content mb-4">{`${groupData.length} Groups Found`}</h2>
+        <div className="flex items-center gap-4 flex-wrap">
           <input
             type="text"
-            className="input input-bordered rounded-full w-full max-w-lg"
+            className="input input-bordered rounded-full w-full max-w-md bg-base-100 pl-10 pr-4 py-2 placeholder-base-content/50 focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
             placeholder="🔍 Search groups..."
           />
-          <select className="select select-bordered w-36">
+          <select className="select select-bordered w-48 bg-base-100 rounded-full focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200">
             <option>Sort by: Newest</option>
             <option>Sort by: Popular</option>
             <option>Sort by: Alphabetical</option>
-            {/* enhance feature in future */}
           </select>
         </div>
       </div>
 
-      <div className="groups-container">
+      <div className="groups-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto ">
         {groupData.map((group) => (
           <div
             key={group._id}
-            className={`bg-white w-xs h-auto p-4 rounded-xl shadow-md relative z-0 ${
-              selectedGroupId === group._id ? 'bg-blue-100' : ''
-            }`}
+            className={`bg-white w-80 p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer relative ${
+              selectedGroupId === group._id ? 'bg-blue-50 border-2 border-blue-500' : 'hover:bg-gray-50'
+            } w-96`}
             onClick={() => handleGroupSelect(group._id)}
           >
-            <GroupHeader groupData={group} groupName={group.information.name} />
+            <GroupHeader groupData={group} groupName={group.information.name} className="mb-2" />
             <GroupLocation
               year={convertDate(group.createdAt).year}
               city={group.information.city}
               time={convertDate(group.createdAt).formattedDate}
+              className="text-base-content/70 mb-2"
             />
-            <GroupDescription description={group.information.bio} />
-
-            <GroupFooter date={convertDate(group.createdAt).formattedDate} handleBlockGroup={handleBlockGroup} handleSaveGroup={handleSaveGroup}/>
+            <GroupDescription description={group.information.bio} className="text-base-content/70 mb-4" />
+            <GroupFooter
+              date={convertDate(group.createdAt).formattedDate}
+              handleBlockGroup={handleBlockGroup}
+              handleSaveGroup={handleSaveGroup}
+              className="flex justify-between items-center text-sm text-base-content/60"
+            />
           </div>
         ))}
       </div>

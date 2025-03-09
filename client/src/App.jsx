@@ -1,85 +1,106 @@
-import React, { useState, useEffect, useRef } from 'react';
-
-import { AuthProvider } from './provider/AuthProvider';
-import ProtectedRoute from './ProtectedRoute';
+import React, { useEffect } from 'react';
+import { store } from './redux/store';
+import { Provider } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { apiService } from './services/api/apiService';
+import { setProfilePicture } from './redux/reducer/profilePictureSlice';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
 import Login from './page/Login';
-import SignUp from './page/SignUp';
 import Reset from './page/Reset';
-import GroupsList from './components/YourGroup/GroupsList';
-import YourGroups from './page/YourGroups';
+import SignUp from './page/SignUp';
 import AboutPage from './page/About';
+import YourGroups from './page/YourGroups';
 import SettingsPage from './page/Settings';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import GroupsList from './components/YourGroup/GroupsList';
 import GroupInformation from './components/Group/GroupInformation';
-import { apiPaths } from './path';
-import { apiService } from './services/api/apiService';
-import { UserProfileProvider } from './context/userProfileContext';
-function Layout({ userProfile }) {
+import { AuthProvider } from './provider/AuthProvider';
+
+function Layout() {
+  const token = localStorage.getItem('jwtToken');
+  const user = JSON.parse(localStorage.getItem('user'));
+
   const location = useLocation();
+  const dispatch = useDispatch();
+
+  const isAboutPage = location.pathname === '/about';
   const isDashboard = location.pathname === '/' || location.pathname.startsWith('/your-groups');
-  const isAboutPage = location.pathname === '/about'; //  footer only on About page
-  console.log(userProfile);
+
+  useEffect(() => {
+    const fetchUserProfilePicture = async () => {
+      try {
+        const response = await apiService.file.getProfilePicture({
+          token: token,
+          userId: user?.userId,
+        });
+        if (!response) {
+          return;
+        }
+        dispatch(setProfilePicture(response.photoUrl));
+      } catch (err) {
+        console.error('Error fetching user profile:', err);
+      }
+    };
+    if (token && user) fetchUserProfilePicture();
+  }, [token, user, dispatch]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Navbar */}
+    <div className="flex flex-col min-h-screen bg-black-500" data-theme="light">
       <Navbar />
-
-      {/* Main Content Layout */}
-      <div className="flex flex-1 w-full bg-gradient-to-br from-gray-100 to-gray-200">
-        {/* Sidebar for "groups" / "your groups" */}
+      <div className="flex flex-1 w-full bg-gradient-to-br from-base-100 to-base-200">
         {isDashboard && (
-          <aside className="w-64 min-w-[250px] p-4 hidden md:block">
+          <aside className=" p-6 hidden md:block">
             <Sidebar />
           </aside>
         )}
 
-        {/* Main Content */}
-        <main className={`flex-1 p-6 ${isDashboard ? 'ml-64' : ''}`}>
+        <main className={`flex-1 p-4 md:p-6 ${isDashboard ? 'md:ml-10' : ''} max-w-7xl mx-auto`}>
           <Outlet />
         </main>
       </div>
 
-      {/* Footer for about page */}
       {isAboutPage && (
-        <footer className="w-full bg-white p-8 shadow-xl">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+        <footer className="w-full bg-gray-200 p-8 shadow-inner border-t border-base-300">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-center md:text-left">
             <div>
-              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">
+              <h4 className="text-lg font-bold text-base-content mb-4 hover:text-primary transition-colors duration-300">
                 Phong
               </h4>
-              <ul className="text-gray-600 text-md space-y-3 mt-3">
-                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UI desing</li>
-                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UX design</li>
+              <ul className="text-base-content/80 space-y-2">
+                <li className="hover:text-primary hover:translate-x-1 transition-all duration-300">UI Design</li>
+                <li className="hover:text-primary hover:translate-x-1 transition-all duration-300">UX Design</li>
               </ul>
             </div>
             <div>
-              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">
+              <h4 className="text-lg font-bold text-base-content mb-4 hover:text-primary transition-colors duration-300">
                 Leevi
               </h4>
-              <ul className="text-gray-600 text-md space-y-3 mt-3">
-                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UI desing</li>
-                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">UX design</li>
+              <ul className="text-base-content/80 space-y-2">
+                <li className="hover:text-primary hover:translate-x-1 transition-all duration-300">UI Design</li>
+                <li className="hover:text-primary hover:translate-x-1 transition-all duration-300">UX Design</li>
               </ul>
             </div>
             <div>
-              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">
+              <h4 className="text-lg font-bold text-base-content mb-4 hover:text-primary transition-colors duration-300">
                 Casper
               </h4>
-              <ul className="text-gray-600 text-md space-y-3 mt-3">
-                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
-                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
+              <ul className="text-base-content/80 space-y-2">
+                <li className="hover:text-primary hover:translate-x-1 transition-all duration-300">Backend</li>
+                <li className="hover:text-primary hover:translate-x-1 transition-all duration-300">Backend</li>
               </ul>
             </div>
             <div>
-              <h4 className="text-gray-900 font-semibold text-lg transition duration-300 hover:text-blue-600 hover:translate-x-2">
+              <h4 className="text-lg font-bold text-base-content mb-4 hover:text-primary transition-colors duration-300">
                 Tino
               </h4>
-              <ul className="text-gray-600 text-md space-y-3 mt-3">
-                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
-                <li className="transition duration-300 hover:text-blue-600 hover:translate-x-2">Backend</li>
+              <ul className="text-base-content/80 space-y-2">
+                <li className="hover:text-primary hover:translate-x-1 transition-all duration-300">Backend</li>
+                <li className="hover:text-primary hover:translate-x-1 transition-all duration-300">Backend</li>
               </ul>
             </div>
           </div>
@@ -96,11 +117,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: (
-          <>
-            <GroupsList allGroup={true} />
-          </>
-        ),
+        element: <GroupsList allGroup={true} />,
       },
       {
         path: 'your-groups',
@@ -112,21 +129,11 @@ const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        // (
-        element: (
-          //<ProtectedRoute>
-          <SettingsPage />
-        ),
-        //</ProtectedRoute>
-        //),
+        element: <SettingsPage />,
       },
       {
         path: 'group/:id',
-        element: (
-          <ProtectedRoute>
-            <GroupInformation />
-          </ProtectedRoute>
-        ),
+        element: <GroupInformation />,
       },
     ],
   },
@@ -145,31 +152,13 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  const [userProfile, setUserProfile] = useState(null);
-  const jwt = localStorage.getItem('jwtToken');
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const response = await apiService.user.getUserProfile({ token: jwt });
-        if (response) {
-          setUserProfile(response);
-        } else {
-          console.log('No data received');
-        }
-      } catch (error) {
-        console.error('Error fetching group data:', error);
-      }
-    };
-    fetchUserProfile();
-  }, []);
-
   return (
-    <AuthProvider>
-      <UserProfileProvider>
+    <Provider store={store}>
+      <AuthProvider>
         <RouterProvider router={router} />
-      </UserProfileProvider>
-    </AuthProvider>
+        <ToastContainer/>
+      </AuthProvider>
+    </Provider>
   );
 }
 

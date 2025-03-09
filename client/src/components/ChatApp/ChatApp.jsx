@@ -4,31 +4,19 @@ import ChatSidebar from './ChatSideBar';
 import ChatHeader from './ChatHeader';
 import ChatInput from './ChatInput';
 import { apiService } from '../../services/api/apiService';
-export const ChatApp = ({ toggleChatModal, groupId, groupData }) => {
+import { useSelector } from 'react-redux';
+import { AuthContext } from '../../provider/AuthProvider';
+import { useContext } from 'react';
+export const ChatApp = ({ userProfilePictures, toggleChatModal, groupId, groupData }) => {
   const [activeGroup, setActiveGroup] = useState(null);
   const [messages, setMessages] = useState([]);
   const [socket, setSocket] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   const [newText, setNewText] = useState('');
-  const [userProfilePictures, setUserProfilePictures] = useState([]);
-  const user = JSON.parse(localStorage.getItem('user'));
-  const jwt = localStorage.getItem('jwtToken');
+  const { userData } = useSelector((state) => state.userData);
+  const { user } = useContext(AuthContext);
 
-  useEffect(() => {
-    const fetchGroupUserProfilePicture = async () => {
-      try {
-        const response = await apiService.file.getMultipleProfilePictures({ token: jwt, userIds: groupData.members });
-        if (response) {
-          setUserProfilePictures(response);
-        } else {
-          console.log('No data received');
-        }
-      } catch (error) {
-        console.error('Error fetching group data:', error);
-      }
-    };
-    fetchGroupUserProfilePicture();
-  }, []);
+  const jwt = localStorage.getItem('jwtToken');
 
   useEffect(() => {
     const socketInit = io(process.env.REACT_APP_GROUP_FINDER, {
@@ -125,7 +113,11 @@ export const ChatApp = ({ toggleChatModal, groupId, groupData }) => {
     setNewText('');
   };
 
-  const currentUser = (msg) => msg.sender?.username === user.username;
+  const currentUser = (msg) => {
+    console.log(msg);
+
+    return msg.sender?.username === user.username;
+  };
 
   const editButtonLabels = [
     { label: 'Save', actionType: 'save' },
@@ -175,10 +167,7 @@ export const ChatApp = ({ toggleChatModal, groupId, groupData }) => {
                       )}
                       <div className={`flex ${!currentUser(msg) ? 'justify-start' : 'justify-end'} items-center mt-1`}>
                         <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                          <img
-                            src={senderProfile(msg)}
-                            className="w-full h-full object-cover rounded-full"
-                          />
+                          <img src={senderProfile(msg)} className="w-full h-full object-cover rounded-full" />
                         </div>
                         <div className={`${currentUser(msg) ? 'justify-end' : ''} bg-gray-200 rounded-2xl py-2 px-4`}>
                           {editingMessage && editingMessage._id === msg._id ? (

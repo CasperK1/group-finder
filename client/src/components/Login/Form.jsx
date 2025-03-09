@@ -1,12 +1,17 @@
-import { useContext } from "react";
+import { useContext } from 'react';
 import InputField from './InputField';
 import PasswordField from './PasswordField';
 import { useNavigate } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { apiService } from '../../services/api/apiService';
-import { AuthContext } from "../../provider/AuthProvider";
+import { AuthContext } from '../../provider/AuthProvider';
+import { useDispatch } from 'react-redux';
+import { setUserData } from '../../redux/reducer/userDataSlice';
+import { toast } from 'react-toastify'; 
+
 function Form() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { login } = useContext(AuthContext);
   const {
     control,
@@ -18,16 +23,29 @@ function Form() {
     const response = await apiService.auth.handleLogin(data);
     if (!response) {
       console.error('Error: Invalid response or token missing.');
+      toast.error('Login failed. Please try again.');
     } else {
       localStorage.setItem('jwtToken', response.token);
+      dispatch(setUserData(response));
       login(response);
-      console.log('Token saved successfully.')
+      console.log('Token saved successfully.');
       navigate('/');
+      toast.success('Logged in successfully!');
+    }
+  };
+
+  // Error callback for when validation fails.
+  const onError = (errors) => {
+    if (errors.email) {
+      toast.error(errors.email.message);
+    }
+    if (errors.password) {
+      toast.error(errors.password.message);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit, onError)}>
       <Controller
         name="email"
         control={control}
@@ -40,7 +58,7 @@ function Form() {
         }}
         render={({ field }) => (
           <div>
-            <InputField {...field} type="text" label="Email address or user name" placeholder="Enter your email" />
+            <InputField {...field} type="text" label="Email address or username" placeholder="Enter your email" />
             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
           </div>
         )}
@@ -76,9 +94,9 @@ function Form() {
 
       <button
         type="submit"
-        className="w-full py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+        className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
       >
-        Log in
+        Login
       </button>
     </form>
   );

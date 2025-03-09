@@ -3,8 +3,8 @@ import { useUserProfile } from '../../context/userProfileContext';
 import { apiService } from '../../services/api/apiService';
 const Sidebar = ({ setActiveGroup }) => {
   const jwt = localStorage.getItem('jwtToken');
-  const [groups, setGroups] = useState([])
-  
+  const [groups, setGroups] = useState([]);
+
   useEffect(() => {
     const fetchGroupJoined = async () => {
       try {

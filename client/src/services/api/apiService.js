@@ -1,11 +1,20 @@
 import { handleLogin, handleRegister } from '../authService';
-import { getGroupInformationData, getGroupFiles, joinGroup, leaveGroup, getAllGroups, } from '../groupService';
-import { getUserProfile, getAllUsers, getGroupJoined} from '../userService';
-import { uploadProfilePicture ,getProfilePicture, getMultipleProfilePictures} from '../fileService';
+import { getGroupInformationData, getGroupFiles, joinGroup, leaveGroup, getAllGroups } from '../groupService';
+import { getUserProfile, getAllUsers, getGroupJoined } from '../userService';
+import {
+  uploadProfilePicture,
+  getProfilePicture,
+  getMultipleProfilePictures,
+  downloadGroupFile,
+  uploadGroupFile,
+  deleteProfilePicture,
+  deleteGroupFile,
+} from '../fileService';
+
 export const apiService = {
   auth: {
     handleLogin,
-    handleRegister
+    handleRegister,
   },
   group: {
     getGroupInformationData,
@@ -15,13 +24,17 @@ export const apiService = {
     getAllGroups,
   },
   user: {
-    getAllUsers, 
+    getAllUsers,
     getUserProfile,
-    getGroupJoined
+    getGroupJoined,
   },
-  file:{
+  file: {
     uploadProfilePicture,
     getProfilePicture,
-    getMultipleProfilePictures
-  }
+    getMultipleProfilePictures,
+    downloadGroupFile,
+    uploadGroupFile,
+    deleteProfilePicture,
+    deleteGroupFile,
+  },
 };

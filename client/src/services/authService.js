@@ -24,16 +24,16 @@ export const handleRegister = async (data) => {
     const { email, password, lastName, firstName, username } = data;
     const payload = {
       email: email,
-      username: username, 
+      username: username,
       password: password,
       firstName: firstName,
       lastName: lastName,
-      major: "Computer Science",
-      academicInterests: ["coding"], 
-      bio: "",
-      timePreference: "morning",
-      locationPreference: "on-campus",
-      groupSizePreference: 4
+      major: 'Computer Science',
+      academicInterests: ['coding'],
+      bio: '',
+      timePreference: 'morning',
+      locationPreference: 'on-campus',
+      groupSizePreference: 4,
     };
     const response = await axios.post(`${apiPaths.auth}/register`, payload, {
       headers: {

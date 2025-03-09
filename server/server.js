@@ -1,7 +1,6 @@
 require('dotenv').config();
 const http = require('http');
 const app = require('./app');
-const connectDb = require("./config/db");
 const initializeSocket = require('./config/socket');
 
 const port = process.env.PORT || 3000;
@@ -15,8 +14,6 @@ app.set('io', io);
 
 const startServer = async () => {
   try {
-    // Connect to database
-    await connectDb();
 
     // Start server
     server.listen(port, () => {

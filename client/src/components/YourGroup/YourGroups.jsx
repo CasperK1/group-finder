@@ -1,6 +1,6 @@
-import React from "react";
-import HeaderSection from "./components/HeaderSection";
-import GroupsList from "./components/GroupsList";
+import React from 'react';
+import HeaderSection from './components/HeaderSection';
+import GroupsList from './components/GroupsList';
 
 const YourGroups = () => {
   return (

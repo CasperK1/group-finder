@@ -15,4 +15,4 @@ const ChatHeader = ({ groupName }) => (
   </div>
 );
 
-export default ChatHeader
+export default ChatHeader;
