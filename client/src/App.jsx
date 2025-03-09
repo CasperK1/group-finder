@@ -5,6 +5,9 @@ import { useDispatch } from 'react-redux';
 import { apiService } from './services/api/apiService';
 import { setProfilePicture } from './redux/reducer/profilePictureSlice';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 import Login from './page/Login';
 import Reset from './page/Reset';
@@ -153,6 +156,7 @@ function App() {
     <Provider store={store}>
       <AuthProvider>
         <RouterProvider router={router} />
+        <ToastContainer/>
       </AuthProvider>
     </Provider>
   );

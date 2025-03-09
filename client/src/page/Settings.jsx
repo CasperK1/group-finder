@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { apiService } from '../services/api/apiService';
 import { ProfileSection } from '../components/Profile/Profile';
 import { SettingSection } from '../components/Profile/Setting';
-import { useContext } from 'react';
 import { AuthContext } from '../provider/AuthProvider';
 import { useDispatch, useSelector } from 'react-redux';
 import { setProfilePicture } from '../redux/reducer/profilePictureSlice';
+import { toast } from 'react-toastify';
 
 const SettingsPage = () => {
   const jwt = localStorage.getItem('jwtToken');
@@ -24,10 +24,13 @@ const SettingsPage = () => {
       if (response) {
         console.log(response);
         dispatch(setProfilePicture(response.photoUrl));
+        toast.success('Profile picture updated successfully!');
       } else {
-        console.log('No data received');
+        toast.error('Failed to update profile picture. No data received.');
+        console.error('No data received');
       }
     } catch (error) {
+      toast.error('An error occurred while updating profile picture.');
       console.error('Error fetching group data:', error);
     }
   };
@@ -43,7 +46,6 @@ const SettingsPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center p-6">
       <h2 className="text-4xl font-bold text-gray-900 mb-8">Settings</h2>
-
       <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8">
         <ProfileSection
           profilePicture={profilePicture}
