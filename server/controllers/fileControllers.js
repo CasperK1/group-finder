@@ -19,13 +19,13 @@ const getProfilePicture = async (req, res) => {
       return res.status(404).json({message: 'No profile picture found'});
     }
     // Generate a signed URL
-    const signedUrl = await s3Service.getFileDownloadUrl(user.profile.photo, 86400);
+    const signedUrl = await s3Service.getFileDownloadUrl(user.profile.photo, 3600);
 
-    res.setHeader('Cache-Control', 'private, max-age=86400');
+    res.setHeader('Cache-Control', 'private, max-age=3600');
     res.json({
       userId: user._id,
       photoUrl: signedUrl,
-      expiresAt: new Date(Date.now() + 86400000) // 24 hours in millisecond
+      expiresAt: new Date(Date.now() + 3600000) // 1 hours in millisecond
     });
   } catch (error) {
     console.error('Error fetching profile picture:', error);
@@ -56,7 +56,7 @@ const getMultipleProfilePictures = async (req, res) => {
       users.map(async (user) => {
         let signedUrl = null;
         try {
-          signedUrl = await s3Service.getFileDownloadUrl(user.profile.photo, 86400);
+          signedUrl = await s3Service.getFileDownloadUrl(user.profile.photo, 3600);
         } catch (error) {
           console.error(`Error generating URL for user ${user._id}:`, error);
         }
@@ -64,11 +64,11 @@ const getMultipleProfilePictures = async (req, res) => {
           userId: user._id,
           photoUrl: signedUrl,
           // Include expiration time so frontend knows when to refresh
-          expiresAt: new Date(Date.now() + 86400000)// 24 hours in millisecond
+          expiresAt: new Date(Date.now() + 3600000)// 1 hours in millisecond
         };
       })
     );
-    res.setHeader('Cache-Control', 'private, max-age=86400');
+    res.setHeader('Cache-Control', 'private, max-age=3600');
     res.json(profilePictures);
   } catch (error) {
     console.error('Error fetching profile pictures:', error);
@@ -99,10 +99,13 @@ const uploadProfileImage = async (req, res) => {
     // Update user's profile photo with the new S3 location
     user.profile.photo = req.file.key;
     await user.save();
+    const signedUrl = await s3Service.getFileDownloadUrl(req.file.key, 3600);
 
-    res.status(200).json({
-      message: 'Profile picture uploaded successfully',
-      photoUrl: req.file.location
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    res.json({
+      userId: user._id,
+      photoUrl: signedUrl,
+      expiresAt: new Date(Date.now() + 3600000) // 1 hours in millisecond
     });
   } catch (error) {
     console.error('Error in uploadProfileImage:', error);

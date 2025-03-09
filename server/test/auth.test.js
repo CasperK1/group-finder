@@ -3,7 +3,6 @@ const app = require("../app");
 const api = supertest(app);
 const mongoose = require("mongoose");
 const User = require("../models/user");
-const jwt = require("jsonwebtoken");
 
 let authToken;
 let userId;
@@ -16,7 +15,7 @@ beforeAll(async () => {
     if (require('../services/s3Service').redis) {
       await require('../services/s3Service').redis.quit();
     }
-    //await User.deleteMany();
+    await User.deleteMany();
     console.log("User collection cleared");
   } catch (error) {
     console.error("Error closing connections:", error);
@@ -64,6 +63,27 @@ describe("Auth and User Routes", () => {
     userId = response.body.userId;
   });
 
+  test("Login with invalid password", async () => {
+    const response = await api
+      .post("/api/auth/login")
+      .send({email: "testuser@example.com", password: "WrongPassword123"});
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe("Invalid password");
+    expect(response.body.token).toBeUndefined();
+  });
+
+  test("Login with non-existent email", async () => {
+    const response = await api
+      .post("/api/auth/login")
+      .send({email: "nonexistent@example.com", password: "TestPassword123"});
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe("User does not exist");
+    expect(response.body.token).toBeUndefined();
+  });
+
+
   test("Accessing protected route without token should return 401", async () => {
     const response = await api
       .get(`/api/users/profile`);
@@ -90,6 +110,13 @@ describe("Auth and User Routes", () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.profile.major).toBe("Mathematics");
+  });
+
+  test("Get joined groups", async () => {
+    const response = await api
+      .get("/api/users/groups/joined")
+      .set("Authorization", `Bearer ${authToken}`)
+    expect(response.statusCode).toBe(200);
   });
 
   test("Delete user account", async () => {
