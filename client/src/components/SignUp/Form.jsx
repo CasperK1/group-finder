@@ -2,40 +2,34 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { apiService } from '../../services/api/apiService';
-
-import Modal from '../Modal';
-
-const loginPath = '/login';
+import { toast } from 'react-toastify';
 
 function SignUpForm() {
   const navigate = useNavigate();
-
   const { control, handleSubmit } = useForm();
-  const [modalMessage, setModalMessage] = useState('');
-  const [showPassword, setShowPassword] = useState(false); //Todo Sentry -- update password invisible
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data) => {
     const response = await apiService.auth.handleRegister(data);
     if (!response) {
-      setModalMessage('Registration failed. Please try again.');
-      setModalVisible(true);
+      toast.error('Registration failed. Please try again.');
       console.error('Error: Invalid response or token missing.');
     } else {
-      setModalMessage('Registration successful!');
-      setModalVisible(true);
+      toast.success('Registration successful!');
+      setTimeout(() => navigate('/login'), 2000);
     }
   };
 
-  const handleNavigate = () => {
-    setModalVisible(false);
-    navigate(loginPath);
+  const onError = (errors) => {
+    Object.values(errors).forEach((err) => {
+      toast.error(err.message);
+    });
   };
 
   return (
     <div>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <form onSubmit={handleSubmit(onSubmit, onError)}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-black">
           <Controller
             name="firstName"
             control={control}
@@ -63,7 +57,7 @@ function SignUpForm() {
             )}
           />
         </div>
-        <div className="mb-4">
+        <div className="mb-4 text-black">
           <Controller
             name="email"
             control={control}
@@ -84,7 +78,7 @@ function SignUpForm() {
             )}
           />
         </div>
-        <div className="mb-4">
+        <div className="mb-4 text-black">
           <Controller
             name="username"
             control={control}
@@ -99,7 +93,7 @@ function SignUpForm() {
             )}
           />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-black">
           <Controller
             name="password"
             control={control}
@@ -125,9 +119,10 @@ function SignUpForm() {
             )}
           />
           <Controller
-            name="confirm password"
+            name="confirm Password"
             control={control}
             rules={{
+              required: 'Please confirm your password',
               validate: (value, formValues) =>
                 value === formValues.password ? true : 'Passwords must match. Please try again.',
             }}
@@ -141,15 +136,16 @@ function SignUpForm() {
             )}
           />
         </div>
-        <p className="text-gray-500 text-sm mb-4">Use 8 or more characters with a mix of letters, numbers & symbols</p>
+        <p className="text-gray-500 text-sm mb-4">
+          Use 8 or more characters with a mix of letters, numbers & symbols
+        </p>
         <button
           type="submit"
-          className="w-full py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
         >
-          Log in
+          Sign up
         </button>
       </form>
-      {isModalVisible && <Modal message={modalMessage} onClose={handleNavigate} />}
     </div>
   );
 }
