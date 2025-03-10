@@ -69,8 +69,7 @@ export const getGroupFiles = async (req) => {
 };
 
 export const downloadGroupFile = async (req) => {
-  const { groupId, fileId } = req;
-  const token = req.token;
+  const { groupId, fileId, token } = req;
 
   try {
     const url = `${apiPaths.files}/group/${groupId}/${fileId}`;

@@ -139,7 +139,7 @@ class S3Service {
           '.rs', '.ts', '.md', '.yaml', '.yml', '.pl', '.sh',
 
           // Images
-          '.jpg', '.jpeg', '.png', '.gif', '.svg', '.bmp', '.webp',
+          '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp',
 
           // Archives
           '.zip', '.rar', '.7z', '.tar', '.gz',

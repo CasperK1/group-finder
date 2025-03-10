@@ -1,4 +1,5 @@
 import React from 'react';
+import {Icon} from "@iconify/react";
 
 export function GroupHeader({ userProfilePictures, groupUsers, groupInfo, groupData }) {
   const filterPhoto = (user) => userProfilePictures.filter((userPic) => userPic.userId === user);
@@ -9,7 +10,7 @@ export function GroupHeader({ userProfilePictures, groupUsers, groupInfo, groupD
       <div
         className={`${groupInfo ? 'w-50 h-50' : 'w-20 h-20'} bg-gray-300 rounded-lg flex justify-center items-center`}
       >
-        <img src={groupData.information.photo} alt="Group logo" className="w-full h-auto rounded-full p-2" />
+      <Icon icon="tabler:apps" width="74" height="74"  style={{color:" #000"}} />
       </div>
 
       <div className={groupInfo ? 'ml-8 space-y-2 h-50' : 'ml-4 space-y-2 h-20'}>
