@@ -7,27 +7,20 @@ import { toast } from 'react-toastify';
 function SignUpForm() {
   const navigate = useNavigate();
   const { control, handleSubmit } = useForm();
-  // Remove modal state if you no longer need a modal notification.
   const [showPassword, setShowPassword] = useState(false);
 
-  // This onSubmit is called only when validation passes.
   const onSubmit = async (data) => {
     const response = await apiService.auth.handleRegister(data);
     if (!response) {
-      // Display error notification if registration failed
       toast.error('Registration failed. Please try again.');
       console.error('Error: Invalid response or token missing.');
     } else {
-      // Display success notification
       toast.success('Registration successful!');
-      // Optionally navigate to the login page after a short delay
       setTimeout(() => navigate('/login'), 2000);
     }
   };
 
-  // This onError callback handles validation errors by showing a toast for each error.
   const onError = (errors) => {
-    // Loop over each error and display its message.
     Object.values(errors).forEach((err) => {
       toast.error(err.message);
     });
