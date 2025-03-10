@@ -1,23 +1,25 @@
 import React, {useEffect, useState, useRef} from 'react';
 import {apiService} from '../../services/api/apiService';
 import {ChatApp} from '../ChatApp/ChatApp';
-import {DocumentPreview} from '../DocumentPreview.jsx'
+import {DocumentPreview} from './DocumentPreview.jsx';
+import {FilePondComponent} from './FilePond.jsx';
 
 export function GroupTabs({
-  groupData,
-  groupUsers,
-  groupId,
-  activeTab,
-  setActiveTab,
-  toggleChatModal,
-  isChatOpen,
-  isJoined,
-}) {
+                            groupData,
+                            groupUsers,
+                            groupId,
+                            activeTab,
+                            setActiveTab,
+                            toggleChatModal,
+                            isChatOpen,
+                            isJoined,
+                          }) {
   const [groupFiles, setGroupFiles] = useState([]);
   const [userProfilePictures, setUserProfilePictures] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [showUploader, setShowUploader] = useState(false);
   const modalRef = useRef(null);
 
   const jwt = localStorage.getItem('jwtToken');
@@ -119,12 +121,6 @@ export function GroupTabs({
 
   const filterPhoto = (user) => userProfilePictures.filter((userPic) => userPic.userId === user._id);
 
-  // Function to get file type based on extension
-  const getFileType = (fileName) => {
-    if (!fileName) return 'unknown';
-    const extension = fileName.split('.').pop().toLowerCase();
-    return extension;
-  };
 
   return (
     <div className="mb-4">
@@ -150,8 +146,10 @@ export function GroupTabs({
           className="btn btn-primary btn-circle"
           onClick={toggleChatModal}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24"
+               stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
           </svg>
         </button>
       </div>
@@ -159,8 +157,28 @@ export function GroupTabs({
       <div className="mt-4 p-4 bg-white rounded-b-lg shadow-sm">
         {activeTab === 'Documents' && (
           <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Group Documents</h3>
+              <button
+                onClick={() => setShowUploader(!showUploader)}
+                className={`btn ${showUploader ? 'btn-error' : 'btn-primary'}`}
+              >
+                {showUploader ? 'Close Upload' : 'Upload New File'}
+              </button>
+            </div>
+
+            {showUploader && (
+              <FilePondComponent
+                jwt={jwt}
+                groupId={groupId}
+                setGroupFiles={setGroupFiles}
+              />
+            )}
+
             {isLoading ? (
-              <p className="text-gray-500">Loading documents...</p>
+              <div className="flex justify-center items-center py-8">
+                <span className="loading loading-spinner loading-lg"></span>
+              </div>
             ) : groupFiles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {groupFiles.map((doc, index) => (
@@ -198,13 +216,23 @@ export function GroupTabs({
                         >
                           Download
                         </a>
+                                                <a
+                          href="#"
+                          className="text-xs text-blue-500 hover:underline inline-block"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDelete(doc);
+                          }}
+                        >
+                          Delete
+                        </a>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500">No documents available in this group yet.</p>
+              <p className="text-gray-500 text-center py-8">No documents available in this group yet.</p>
             )}
           </div>
         )}
@@ -229,7 +257,6 @@ export function GroupTabs({
         {activeTab === 'Meetings' && <p className="text-gray-500">Upcoming meetings schedule...</p>}
       </div>
 
-      {/* Chat component */}
       <div>
         {isChatOpen && (
           <ChatApp
@@ -241,7 +268,6 @@ export function GroupTabs({
         )}
       </div>
 
-      {/* DaisyUI Modal for Document Preview */}
       {isPreviewModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
           <div ref={modalRef} className="bg-white rounded-lg w-full max-w-4xl h-5/6 flex flex-col">
@@ -257,7 +283,7 @@ export function GroupTabs({
               </button>
             </div>
             <div className="flex-grow overflow-auto p-4">
-              {selectedDoc && <DocumentPreview document={selectedDoc} />}
+              {selectedDoc && <DocumentPreview document={selectedDoc}/>}
             </div>
             <div className="p-4 border-t flex justify-end">
               <button

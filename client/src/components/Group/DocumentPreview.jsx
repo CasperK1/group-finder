@@ -1,4 +1,3 @@
-// Simple Document Preview component that uses iframes
 export const DocumentPreview = ({ document }) => {
   if (!document || !document.uri) return null;
 
