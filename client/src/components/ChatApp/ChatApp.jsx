@@ -75,10 +75,6 @@ export const ChatApp = ({ userProfilePictures, toggleChatModal, groupId, groupDa
       formatting: {},
       attachments: [],
     });
-    setMessages((prev) => [
-      ...prev,
-      { sender: { username: user.username }, content: { text: message }, createdAt: new Date() },
-    ]);
   };
 
   const startEditingMessage = (message) => {
