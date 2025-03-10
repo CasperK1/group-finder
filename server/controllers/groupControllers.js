@@ -119,6 +119,10 @@ const createGroup = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
+
+        if (!name || !groupSize || !city) {
+            return res.status(400).json({ message: "Please fill all required fields!" });
+        }
  
         user.groupsJoined.push(group._id); // Add the group to the user's groupsJoined array
 
@@ -281,7 +285,7 @@ const leaveGroup = async (req, res) => {
     }
 };
 
-// DELETE /api//groups/:groupId
+// DELETE /api/groups/:groupId
 const deleteGroup = async (req, res) => {
     const groupId = req.params.groupId;
     const userId = req.user.id;
@@ -610,7 +614,7 @@ const deleteEvent = async (req, res) => {
         group.events.pull(event); // Removes the event from the group's events array
         await group.save();
         
-        return res.status(201).json({ message: "Event deleted succesfully" });
+        return res.status(204).json({ message: "Event deleted succesfully" });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
