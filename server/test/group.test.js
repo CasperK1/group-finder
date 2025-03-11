@@ -1,9 +1,14 @@
 const mongoose = require("mongoose");
+const { ObjectId } = require('mongodb');
 const supertest = require("supertest");
 const app = require("../app");
 const api = supertest(app);
 const Group = require("../models/Group");
 const User = require("../models/User");
+
+const memberObjectIds = ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012", "507f1f77bcf86cd799439013"].map(
+  memberId => new mongoose.Types.ObjectId(memberId)
+);
 
 const groups = [
   {
@@ -18,9 +23,10 @@ const groups = [
     information: {
       name: "Test Group 2",
       city: "Espoo",
-      groupSize: 8,
+      groupSize: 3,
     },
-    owner: "Owner 2"
+    owner: "Owner 2",
+    members: memberObjectIds
   }
 ];
 
@@ -190,12 +196,12 @@ describe("Group Controller", () => {
         .expect(200)
         .expect("Content-Type", /application\/json/);
 
-      const groupAfterPut = await Group.findById(groupIds[2]);
-      expect(groupAfterPut.information.name).toBe(updatedGroup.information.name);
-      expect(groupAfterPut.information.city).toBe(updatedGroup.information.city);
+      const group = await Group.findById(groupIds[2]);
+      expect(group.information.name).toBe(updatedGroup.information.name);
+      expect(group.information.city).toBe(updatedGroup.information.city);
     });
 
-    it("should return 400 for trying to update group while not being it's owner", async () => {
+    it("should return 400 for trying to update a group while not being it's owner", async () => {
       const updatedGroup = {
         information: {
           name: "Edited Group 1",
@@ -220,8 +226,19 @@ describe("Group Controller", () => {
         .expect(200)
         .expect("Content-Type", /application\/json/);
 
-      const groupAfterPut = await Group.findById(groupIds[0]);
-      expect(groupAfterPut.members.map(id => id.toString())).toContain(userId);
+      const group = await Group.findById(groupIds[0]);
+      expect(group.members.map(id => id.toString())).toContain(userId);
+    });
+
+    it("should return 400 when joining a group that's full", async () => {
+      await api
+        .put(`/api/groups/join/${groupIds[1]}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
+
+        const group = await Group.findById(groupIds[1]);
+        expect(group.members.length).toBe(group.information.groupSize);
     });
   });
 
@@ -233,17 +250,36 @@ describe("Group Controller", () => {
         .expect(200)
         .expect("Content-Type", /application\/json/);
 
-      const groupAfterPut = await Group.findById(groupIds[0]);
-      expect(groupAfterPut.members.map(id => id.toString())).not.toContain(userId);
+      const group = await Group.findById(groupIds[0]);
+      expect(group.members.map(id => id.toString())).not.toContain(userId);
     });
+
+    it("should return 400 if owner tries to leave their own group", async () => {
+      await api
+        .put(`/api/groups/leave/${groupIds[2]}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
+
+      const group = await Group.findById(groupIds[2]);
+      expect(group.owner).toBe(userId);
+    })
   });
 
   describe("PUT /api/groups/addMod/:groupId", () => {
-    it("should add another user to the group's moderators list", async () => { 
-      const newModerator = {
-        userId: userId2.toString()
-      };
+    it("should return 400 when adding moderator who isn't a member", async () => {
+      await api
+        .put(`/api/groups/addMod/${groupIds[2]}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({userId: userId2})
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
 
+      const group = await Group.findById(groupIds[2]);
+      expect(group.moderators.map(id => id.toString())).not.toContain(userId2.toString());
+    });
+
+    it("should add a member to the group's moderators list", async () => { 
       // Add the other user to the group's members list
       const group = await Group.findById(groupIds[2]);
       group.members.push(userId2.toString());
@@ -252,7 +288,7 @@ describe("Group Controller", () => {
       await api
         .put(`/api/groups/addMod/${groupIds[2]}`)
         .set("Authorization", `Bearer ${authToken}`)
-        .send(newModerator)
+        .send({userId: userId2})
         .expect(200)
         .expect("Content-Type", /application\/json/);
 
@@ -263,37 +299,80 @@ describe("Group Controller", () => {
 
   describe("PUT /api/groups/removeMod/:groupId", () => {
     it("should remove the other user from the group's moderators list", async () => {
-      const moderator = {
-        userId: userId2.toString()
-      };
-
       await api
         .put(`/api/groups/removeMod/${groupIds[2]}`)
         .set("Authorization", `Bearer ${authToken}`)
-        .send(moderator)
+        .send({userId: userId2})
         .expect(200)
         .expect("Content-Type", /application\/json/);
 
-      const groupAfterPut = await Group.findById(groupIds[2]);
-      expect(groupAfterPut.moderators.map(id => id.toString())).not.toContain(userId2.toString());
+      const group = await Group.findById(groupIds[2]);
+      expect(group.moderators.map(id => id.toString())).not.toContain(userId2.toString());
+    });
+
+    it("should return 400 when trying to remove the owner from the moderator list", async () => {
+      await api
+        .put(`/api/groups/removeMod/${groupIds[2]}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({userId: userId})
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
+
+        const group = await Group.findById(groupIds[2]);
+        expect(group.moderators.map(id => id.toString())).toContain(userId.toString());
+    });
+  });
+
+  describe("PUT /api/groups/owner/:groupId", () => {
+    it("should assign another user as the group owner", async () => {
+      await api
+        .put(`/api/groups/owner/${groupIds[2]}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({userId: userId2})
+        .expect(200)
+        .expect("Content-Type", /application\/json/);
+
+      const group = await Group.findById(groupIds[2]);
+      expect(group.owner).toBe(userId2.toString());
+    });
+
+    it("should return 400 if non-owner tries to transfer ownership", async () => {
+      await api
+        .put(`/api/groups/owner/${groupIds[2]}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({userId: userId})
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
+
+        const group = await Group.findById(groupIds[2]);
+        group.owner = userId; // Change the owner back to current user for the rest of the tests to work
+        group.save();
     });
   });
 
   describe("PUT /api/groups/kick/:groupId", () => {
     it("should kick the other user from the group", async () => {
-      const user = {
-        userId: userId2.toString()
-      };
-
       await api
         .put(`/api/groups/kick/${groupIds[2]}`)
         .set("Authorization", `Bearer ${authToken}`)
-        .send(user)
+        .send({userId: userId2})
         .expect(200)
         .expect("Content-Type", /application\/json/);
 
-      const groupAfterPut = await Group.findById(groupIds[2]);
-      expect(groupAfterPut.members.map(id => id.toString())).not.toContain(userId2.toString());
+      const group = await Group.findById(groupIds[2]);
+      expect(group.members.map(id => id.toString())).not.toContain(userId2.toString());
+    });
+
+    it("should return 400 if current user is not a member of the group and tries to kick someone", async () => {
+      await api
+        .put(`/api/groups/kick/${groupIds[0]}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({userId: userId2})
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
+
+      const group = await Group.findById(groupIds[0]);
+      expect(group.members.map(id => id.toString())).not.toContain(userId.toString());
     });
   });
 
@@ -310,6 +389,26 @@ describe("Group Controller", () => {
         .send(newEvent)
         .expect(201)
         .expect("Content-Type", /application\/json/);
+
+      const group = await Group.findById(groupIds[2]);
+      expect(group.events.length).toBe(1);
+    });
+
+    it("should return 400 if trying to create event while not moderator", async () => {
+      const newEvent = {
+        title: "Event Name",
+        dateTime: "2025-03-15T14:30:00.000Z"
+      };
+
+      await api
+        .post(`/api/groups/createEvent/${groupIds[0]}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send(newEvent)
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
+
+      const group = await Group.findById(groupIds[0]);
+      expect(group.events.length).toBe(0);
     });
   });
 
@@ -317,15 +416,14 @@ describe("Group Controller", () => {
     it("should delete the created event from the group", async () => {
       const group = await Group.findById(groupIds[2]);
 
-      const removedEvent = {
-        eventId: group.events[0]._id.toString()
-      };
-
       await api
         .delete(`/api/groups/deleteEvent/${groupIds[2]}`)
         .set("Authorization", `Bearer ${authToken}`)
-        .send(removedEvent)
+        .send({eventId: group.events[0]._id.toString()})
         .expect(204)
+
+      const groupAfterPost = await Group.findById(groupIds[2]);
+      expect(groupAfterPost.events.length).toBe(0);
     });
   });
 
@@ -335,6 +433,16 @@ describe("Group Controller", () => {
         .delete(`/api/groups/${groupIds[2]}`)
         .set("Authorization", `Bearer ${authToken}`)
         .expect(204)
+
+      const groupsAfterDelete = await Group.find({});
+      expect(groupsAfterDelete).toHaveLength(groups.length);
+    });
+
+    it("should return 400 if non-owner tries to delete group", async () => {
+      await api
+        .delete(`/api/groups/${groupIds[0]}`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .expect(400)
     });
   });
 });
