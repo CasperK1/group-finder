@@ -109,7 +109,7 @@ function GroupsList({ allGroup, ownGroup }) {
       <div className="fixed bottom-6 right-6 z-[1] group">
         <button
           onClick={handleCreateGroup}
-          className="btn btn-circle btn-primary hover:btn-primary/80 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="btn btn-circle bg-blue-500 hover:bg-blue-200 shadow-lg hover:shadow-xl transition-all duration-200"
           aria-label="Create New Group"
         >
           <Icon icon="mdi:plus" width="24" height="24" />
