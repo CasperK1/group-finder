@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { ObjectId } = require('mongodb');
 const supertest = require("supertest");
 const app = require("../app");
 const api = supertest(app);
@@ -39,65 +38,55 @@ const wrongToken = "123456";
 jest.setTimeout(30000);
 
 beforeAll(async () => {
-  // Register new test user
+  await Group.deleteMany({});
   await User.deleteMany({});
-  await api
+
+  // Register first test user
+  const registerResponse = await api
     .post("/api/auth/register")
     .send({
-      email: "testuser@example.com",
-      username: "testuser",
+      email: "user@test.com",
+      username: "usertest",
       password: "TestPassword123",
       firstName: "Test",
       lastName: "User",
-      major: "CS",
-      academicInterests: ["AI"],
+      major: "CS"
     });
-
-  // Find the user and manually verify them
-  const user = await User.findOne({email: "testuser@example.com"});
+  
+  // Find and verify user
+  const user = await User.findOne({email: "user@test.com"});
   user.isVerified = true;
   await user.save();
-
-  // Login and get the token and user ID
-  const login = await api
-    .post("/api/auth/login")
-    .send({email: "testuser@example.com", password: "TestPassword123"});
-
-  authToken = login.body.token;
-  userId = login.body.userId;
-
-  // Register another test user
-  await api
+  userId = user._id;
+  
+  // Register second test user
+  const registerResponse2 = await api
     .post("/api/auth/register")
     .send({
-      email: "testuser2@example.com",
-      username: "testuser2",
+      email: "user2@test.com",
+      username: "usertest2",
       password: "TestPassword123",
       firstName: "Test 2",
       lastName: "User 2",
-      major: "CS",
-      academicInterests: ["AI"],
+      major: "CS"
     });
-
-  // Find the user and manually verify them
-  const user2 = await User.findOne({email: "testuser2@example.com"});
+  
+  // Find and verify second user
+  const user2 = await User.findOne({email: "user2@test.com"});
   user2.isVerified = true;
   await user2.save();
   userId2 = user2._id;
 
+  // Login to get auth token
+  const login = await api
+    .post("/api/auth/login")
+    .send({email: "user@test.com", password: "TestPassword123"});
+
+  authToken = login.body.token;
+
   // Add groups for testing
-  await Group.deleteMany({});
   const insertedGroups = await Group.insertMany(groups);
   groupIds = insertedGroups.map(group => group._id.toString());
-
-  try {
-    if (require('../services/s3Service').redis) {
-      await require('../services/s3Service').redis.quit();
-    }
-    console.log("User collection cleared");
-  } catch (error) {
-    console.error("Error closing connections:", error);
-  }
 });
 
 describe("Group Controller", () => {
@@ -227,7 +216,7 @@ describe("Group Controller", () => {
         .expect("Content-Type", /application\/json/);
 
       const group = await Group.findById(groupIds[0]);
-      expect(group.members.map(id => id.toString())).toContain(userId);
+      expect(group.members.map(id => id.toString())).toContain(userId.toString());
     });
 
     it("should return 400 when joining a group that's full", async () => {
@@ -251,7 +240,7 @@ describe("Group Controller", () => {
         .expect("Content-Type", /application\/json/);
 
       const group = await Group.findById(groupIds[0]);
-      expect(group.members.map(id => id.toString())).not.toContain(userId);
+      expect(group.members.map(id => id.toString())).not.toContain(userId.toString());
     });
 
     it("should return 400 if owner tries to leave their own group", async () => {
@@ -262,7 +251,7 @@ describe("Group Controller", () => {
         .expect("Content-Type", /application\/json/);
 
       const group = await Group.findById(groupIds[2]);
-      expect(group.owner).toBe(userId);
+      expect(group.owner.toString()).toBe(userId.toString());
     })
   });
 
@@ -445,13 +434,4 @@ describe("Group Controller", () => {
         .expect(400)
     });
   });
-});
-
-afterAll(async () => {
-  try {
-    await mongoose.connection.close();
-    console.log("MongoDB connection closed");
-  } catch (error) {
-    console.error("Error closing database connection:", error);
-  }
 });

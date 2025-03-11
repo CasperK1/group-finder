@@ -7,18 +7,15 @@ const User = require("../models/user");
 let authToken;
 let userId;
 
-// Increase timeout for all tests in this file
-jest.setTimeout(30000);
-
 beforeAll(async () => {
   try {
-    if (require('../services/s3Service').redis) {
-      await require('../services/s3Service').redis.quit();
-    }
+    // Ensure a clean database state
+    await mongoose.connection.dropDatabase();
+    
     await User.deleteMany();
     console.log("User collection cleared");
   } catch (error) {
-    console.error("Error closing connections:", error);
+    console.error("Error clearing database:", error);
   }
 });
 
@@ -127,13 +124,4 @@ describe("Auth and User Routes", () => {
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toContain("deleted successfully");
   });
-});
-
-afterAll(async () => {
-  try {
-    await mongoose.connection.close();
-    console.log("MongoDB connection closed");
-  } catch (error) {
-    console.error("Error closing database connection:", error);
-  }
 });

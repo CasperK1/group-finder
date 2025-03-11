@@ -32,5 +32,10 @@
     "start": "cross-env NODE_ENV=production node server.js",
     "redis": "wsl redis-cli",
     "test": "cross-env NODE_ENV=test jest"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["./test/jest.setup.js"],
+    "testSequencer": "./test/customSequencer.js"
   }
 }
