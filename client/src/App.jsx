@@ -2,10 +2,11 @@ import React, { useEffect } from 'react';
 import { store } from './redux/store';
 import { Provider } from 'react-redux';
 import { useDispatch } from 'react-redux';
+import { ToastContainer } from 'react-toastify';
+import { AuthProvider } from './provider/AuthProvider';
 import { apiService } from './services/api/apiService';
 import { setProfilePicture } from './redux/reducer/profilePictureSlice';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
@@ -18,8 +19,8 @@ import SettingsPage from './page/Settings';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import GroupsList from './components/YourGroup/GroupsList';
+import GroupCreateForm from './components/Group/GroupCreateForm';
 import GroupInformation from './components/Group/GroupInformation';
-import { AuthProvider } from './provider/AuthProvider';
 
 function Layout() {
   const token = localStorage.getItem('jwtToken');
@@ -134,6 +135,10 @@ const router = createBrowserRouter([
       {
         path: 'group/:id',
         element: <GroupInformation />,
+      },
+      {
+        path: '/group/create',
+        element: <GroupCreateForm />,
       },
     ],
   },

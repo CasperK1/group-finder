@@ -58,8 +58,6 @@ function GroupInformation() {
         const groupMemberIds = groupData.members.map((member) => member._id);
         const response = await apiService.file.getMultipleProfilePictures({ token: jwt, userIds: groupMemberIds });
         if (response) {
-          console.log('aaaaaaaaaa', response);
-
           setUserProfilePictures(response);
         } else {
           console.log('No data received');

@@ -7,6 +7,7 @@ import { GroupDescription } from '../Group/GroupDescription';
 import { GroupFooter } from '../Group/GroupFooter';
 import { useNavigate } from 'react-router-dom';
 import { convertDate } from '../../utils/date';
+import { Icon } from '@iconify/react';
 
 function GroupsList({ allGroup, ownGroup }) {
   const [loading, setLoading] = useState(true);
@@ -25,6 +26,10 @@ function GroupsList({ allGroup, ownGroup }) {
   };
   const handleSaveGroup = () => {
     console.log('Save');
+  };
+
+  const handleCreateGroup = () => {
+    jwt ? navigate('/group/create') : navigate('/login');
   };
 
   useEffect(() => {
@@ -99,6 +104,21 @@ function GroupsList({ allGroup, ownGroup }) {
             />
           </div>
         ))}
+      </div>
+
+      <div className="fixed bottom-6 right-6 z-[1] group">
+        <button
+          onClick={handleCreateGroup}
+          className="btn btn-circle btn-primary hover:btn-primary/80 shadow-lg hover:shadow-xl transition-all duration-200"
+          aria-label="Create New Group"
+        >
+          <Icon icon="mdi:plus" width="24" height="24" />
+        </button>
+        <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block">
+          <div className="bg-gray-800 text-white text-sm rounded py-1 px-2 whitespace-nowrap">
+            Create New Group
+          </div>
+        </div>
       </div>
     </>
   );

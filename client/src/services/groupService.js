@@ -115,3 +115,30 @@ export const getGroupFiles = async (req) => {
     return null;
   }
 };
+
+export const createGroup= async (groupData, { token }) => {
+  try {
+    const url = `${apiPaths.groups}/`;
+    const response = await axios.post(
+      url,
+      groupData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.status !== 201) { // 201 for Created
+      console.error(`Error! Status: ${response.status}`);
+      return null;
+    }
+
+    console.log('Group creation successful:', response.data);
+    return response.data; // Should return the created group object
+  } catch (error) {
+    console.error('Error creating group:', error.response ? error.response.data : error.message);
+    return null;
+  }
+}
