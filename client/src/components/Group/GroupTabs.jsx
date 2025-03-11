@@ -3,6 +3,7 @@ import {apiService} from '../../services/api/apiService';
 import {ChatApp} from '../ChatApp/ChatApp';
 import {DocumentPreview} from './DocumentPreview.jsx';
 import {FilePondComponent} from './FilePond.jsx';
+import { Icon } from "@iconify/react";
 
 export function GroupTabs({
                             groupData,
@@ -251,10 +252,39 @@ export function GroupTabs({
                   />
                 </div>
               </div>
-              <p className="text-gray-500">{user.username}</p>
+              <div className="flex-row">
+                <p className="text-gray-500">
+                  {user.username} 
+                </p>
+                {user._id === groupData.owner ? <Icon icon="material-symbols:crown" width="24" height="24" /> : ""}
+                {groupData.moderators.includes(user._id) ? <Icon icon="ri:admin-fill" width="24" height="24" /> : ""}
+              </div>
             </div>
           ))}
-        {activeTab === 'Meetings' && <p className="text-gray-500">Upcoming meetings schedule...</p>}
+        {activeTab === 'Meetings' && (
+          <div className="space-y-4">
+            {groupData.events && groupData.events.length > 0 ? (
+              groupData.events.map((event, index) => (
+                <div key={index} className="bg-white p-4 rounded-lg shadow">
+                  <h3 className="text-lg font-semibold">{event.title}</h3>
+                  {event.description && <p className="text-gray-600 mt-1">{event.description}</p>}
+                  <div className="flex items-center mt-2 text-gray-500">
+                    <Icon icon="mdi:calendar-clock" width="20" height="20" className="mr-2" />
+                    <span>{new Date(event.dateTime).toLocaleString()}</span>
+                  </div>
+                  <div className="text-xs text-gray-400 mt-2">
+                    Created: {new Date(event.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-6 text-gray-500">
+                No upcoming meetings scheduled.
+                {console.log(groupData.events)}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div>

@@ -50,7 +50,7 @@ const getGroupInformation = async (req, res) => {
         
         // If user isn't logged in or a member of the group, exclude certain fields
         if (!req.user?.id || !(await Group.findOne({ _id: groupId, members: req.user.id }))) {
-            query = query.select('-chatHistory -documents -events');
+            query = query.select('-chatHistory -documents');
         }
 
         const group = await query;
