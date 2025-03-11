@@ -8,6 +8,7 @@ import { GroupDescription } from './GroupDescription';
 import { GroupTabs } from './GroupTabs';
 import { GroupFooter } from './GroupFooter';
 import { AuthContext } from '../../provider/AuthProvider';
+
 function GroupInformation() {
   const { id } = useParams();
   const [groupData, setGroupData] = useState(null);
@@ -77,7 +78,7 @@ function GroupInformation() {
   }, [user, groupData, isJoined]);
 
   if (!groupData) {
-    return <div>Loading...</div>;
+    return <div className="text-base-content">Loading...</div>;
   }
 
   const handleJoinGroup = async (groupId) => {
@@ -130,7 +131,7 @@ function GroupInformation() {
   }
 
   return (
-    <div className="bg-white w-full p-8 rounded-xl shadow-md relative overflow-y-auto">
+    <div className="bg-base-100 w-full p-8 rounded-xl shadow-md relative overflow-y-auto">
       <GroupHeader
         userProfilePictures={userProfilePictures}
         groupUsers={groupUsers}

@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Controller, useForm } from 'react-hook-form';
-import { apiService } from '../../services/api/apiService';
-import { toast } from 'react-toastify';
+import {useState, useRef} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {Controller, useForm} from 'react-hook-form';
+import {apiService} from '../../services/api/apiService';
+import {toast} from 'react-toastify';
 
 function SignUpForm() {
   const navigate = useNavigate();
-  const { control, handleSubmit } = useForm();
+  const {control, handleSubmit} = useForm();
   const [showPassword, setShowPassword] = useState(false);
+  const successModalRef = useRef(null);
 
   const onSubmit = async (data) => {
     const response = await apiService.auth.handleRegister(data);
@@ -15,8 +16,7 @@ function SignUpForm() {
       toast.error('Registration failed. Please try again.');
       console.error('Error: Invalid response or token missing.');
     } else {
-      toast.success('Registration successful!');
-      setTimeout(() => navigate('/login'), 2000);
+      successModalRef.current.showModal();
     }
   };
 
@@ -33,8 +33,8 @@ function SignUpForm() {
           <Controller
             name="firstName"
             control={control}
-            rules={{ required: 'First name is required' }}
-            render={({ field }) => (
+            rules={{required: 'First name is required'}}
+            render={({field}) => (
               <input
                 {...field}
                 type="text"
@@ -46,8 +46,8 @@ function SignUpForm() {
           <Controller
             name="lastName"
             control={control}
-            rules={{ required: 'Last name is required' }}
-            render={({ field }) => (
+            rules={{required: 'Last name is required'}}
+            render={({field}) => (
               <input
                 {...field}
                 type="text"
@@ -68,7 +68,7 @@ function SignUpForm() {
                 message: 'Invalid email address',
               },
             }}
-            render={({ field }) => (
+            render={({field}) => (
               <input
                 {...field}
                 type="text"
@@ -82,8 +82,8 @@ function SignUpForm() {
           <Controller
             name="username"
             control={control}
-            rules={{ required: 'Username is required' }}
-            render={({ field }) => (
+            rules={{required: 'Username is required'}}
+            render={({field}) => (
               <input
                 {...field}
                 type="text"
@@ -99,17 +99,9 @@ function SignUpForm() {
             control={control}
             rules={{
               required: 'Password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters long',
-              },
-              pattern: {
-                value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                message:
-                  'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-              },
+
             }}
-            render={({ field }) => (
+            render={({field}) => (
               <input
                 {...field}
                 type={showPassword ? 'text' : 'password'}
@@ -119,14 +111,14 @@ function SignUpForm() {
             )}
           />
           <Controller
-            name="confirm Password"
+            name="confirmPassword"
             control={control}
             rules={{
               required: 'Please confirm your password',
               validate: (value, formValues) =>
                 value === formValues.password ? true : 'Passwords must match. Please try again.',
             }}
-            render={({ field }) => (
+            render={({field}) => (
               <input
                 {...field}
                 type={showPassword ? 'text' : 'password'}
@@ -146,6 +138,16 @@ function SignUpForm() {
           Sign up
         </button>
       </form>
+
+      <dialog id="success_modal" className="modal" ref={successModalRef}>
+        <div className="modal-box">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+          </form>
+          <h3 className="font-bold text-lg">Hello!</h3>
+          <p className="py-4">Your account has been created successfully. Verification email sent.</p>
+        </div>
+      </dialog>
     </div>
   );
 }

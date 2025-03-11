@@ -25,7 +25,7 @@ function Navbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center w-full bg-white py-4 px-6 shadow-md">
+    <nav className="flex justify-between items-center w-full bg-base-100 py-4 px-6 shadow-md">
       <div className="flex items-center">
         <Link to="/">
           <img src={logo} alt="Group Finder Logo" className="h-8 cursor-pointer" />
@@ -36,8 +36,8 @@ function Navbar() {
         <li>
           <Link
             to="/"
-            className="relative text-gray-800 font-semibold hover:text-blue-500 transition duration-300 
-                       before:absolute before:bottom-[-4px] before:left-0 before:w-0 before:h-1 before:bg-blue-500 
+            className="relative text-base-content font-semibold hover:text-blue-500 transition duration-300
+                       before:absolute before:bottom-[-4px] before:left-0 before:w-0 before:h-1 before:bg-blue-500
                        before:transition-all before:duration-300 hover:before:w-full"
           >
             Groups
@@ -46,8 +46,8 @@ function Navbar() {
         <li>
           <Link
             to="/your-groups"
-            className="relative text-gray-800 font-semibold hover:text-blue-500 transition duration-300 
-                       before:absolute before:bottom-[-4px] before:left-0 before:w-0 before:h-1 before:bg-blue-500 
+            className="relative text-base-content font-semibold hover:text-blue-500 transition duration-300
+                       before:absolute before:bottom-[-4px] before:left-0 before:w-0 before:h-1 before:bg-blue-500
                        before:transition-all before:duration-300 hover:before:w-full"
           >
             Your Groups
@@ -56,8 +56,8 @@ function Navbar() {
         <li>
           <Link
             to="/about"
-            className="relative text-gray-800 font-semibold hover:text-blue-500 transition duration-300 
-                       before:absolute before:bottom-[-4px] before:left-0 before:w-0 before:h-1 before:bg-blue-500 
+            className="relative text-base-content font-semibold hover:text-blue-500 transition duration-300
+                       before:absolute before:bottom-[-4px] before:left-0 before:w-0 before:h-1 before:bg-blue-500
                        before:transition-all before:duration-300 hover:before:w-full"
           >
             About
@@ -65,11 +65,11 @@ function Navbar() {
         </li>
       </ul>
 
-      <div className="flex items-center space-x-3 bg-white p-2 rounded-lg hover:shadow-md transition">
+      <div className="flex items-center space-x-3 bg-base-100 p-2 rounded-lg hover:shadow-md transition">
         {token !== null ? (
           <div className="group flex items-center">
             <div onClick={handleProfileClick} className="flex items-center cursor-pointer">
-              <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-300">
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-base-300">
                 <img
                   src={profilePicture}
                   alt={user ? `${user.firstName}'s profile` : 'Profile'}
@@ -77,13 +77,13 @@ function Navbar() {
                 />
               </div>
               <div className="text-right ml-3">
-                <p className="text-sm text-gray-600">Hello!</p>
-                <p className="text-md font-semibold text-gray-900">{user ? user.firstName : 'User'}</p>
+                <p className="text-sm text-base-content/70">Hello!</p>
+                <p className="text-md font-semibold text-base-content">{user ? user.firstName : 'User'}</p>
               </div>
             </div>
             <button
               onClick={handleLogoutClick}
-              className="ml-4 text-sm text-gray-500 hover:text-red-500 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+              className="ml-4 text-sm text-base-content/50 hover:text-red-500 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
             >
               Logout
             </button>

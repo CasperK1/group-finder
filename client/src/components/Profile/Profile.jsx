@@ -1,7 +1,7 @@
 export const ProfileSection = ({ profilePicture, handleFileChange, fileInputRef, handleChoosePicture }) => {
   return (
-    <div className="bg-white p-8 shadow-2xl rounded-lg flex flex-col items-center">
-      <div className="w-32 h-32 bg-gray-300 rounded-full overflow-hidden mb-4 border-4 border-gray-400">
+    <div className="bg-base-100 p-8 shadow-2xl rounded-lg flex flex-col items-center">
+      <div className="w-32 h-32 bg-base-300 rounded-full overflow-hidden mb-4 border-4 border-base-300">
         <img
           src={profilePicture ? profilePicture : process.env.REACT_APP_DEFAULT_AVATAR_URL}
           alt={profilePicture ? `profilePicture's profile` : 'Default Avatar'}
@@ -16,7 +16,7 @@ export const ProfileSection = ({ profilePicture, handleFileChange, fileInputRef,
         Choose Picture
       </button>
 
-      <h3 className="text-2xl font-semibold text-gray-900 mt-6">Edit Profile</h3>
+      <h3 className="text-2xl font-semibold text-base-content mt-6">Edit Profile</h3>
     </div>
   );
 };

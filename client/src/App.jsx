@@ -51,7 +51,7 @@ function Layout() {
   }, [token, user, dispatch]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-black-500" data-theme="light">
+    <div className="flex flex-col min-h-screen bg-black-500" data-theme="bumblebee">
       <Navbar />
       <div className="flex flex-1 w-full bg-gradient-to-br from-base-100 to-base-200">
         {isDashboard && (

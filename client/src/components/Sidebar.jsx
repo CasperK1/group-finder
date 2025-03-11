@@ -15,7 +15,7 @@ const Sidebar = () => {
   const yearLevels = ['First Year', 'Second Year', 'Third Year', 'Senior Level'];
 
   return (
-    <aside className="sidebar p-6 bg-base-200 rounded-xl shadow-lg w-72 h-fit sticky top-4" data-theme="light">
+    <aside className="sidebar p-6 bg-base-200 rounded-xl shadow-lg w-72 h-fit sticky top-4" >
       <div className="mb-6">
         <h3
           onClick={() => setShowStudyType(!showStudyType)}

@@ -63,7 +63,7 @@ function GroupsList({ allGroup, ownGroup }) {
 
   return (
     <>
-      <div className="header-section p-6 bg-base-200 rounded-xl shadow-lg mb-6" data-theme="light">
+      <div className="header-section p-6 bg-base-200 rounded-xl shadow-lg mb-6" >
         <h2 className="text-2xl font-bold text-base-content mb-4">{`${groupData.length} Groups Found`}</h2>
         <div className="flex items-center gap-4 flex-wrap">
           <input
@@ -83,8 +83,8 @@ function GroupsList({ allGroup, ownGroup }) {
         {groupData.map((group) => (
           <div
             key={group._id}
-            className={`bg-white w-80 p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer relative ${
-              selectedGroupId === group._id ? 'bg-blue-50 border-2 border-blue-500' : 'hover:bg-gray-50'
+            className={`bg-base-100 w-80 p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer relative ${
+              selectedGroupId === group._id ? 'bg-primary/10 border-2 border-primary' : 'hover:bg-base-200'
             } w-96`}
             onClick={() => handleGroupSelect(group._id)}
           >
@@ -115,7 +115,7 @@ function GroupsList({ allGroup, ownGroup }) {
           <Icon icon="mdi:plus" width="24" height="24" />
         </button>
         <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block">
-          <div className="bg-gray-800 text-white text-sm rounded py-1 px-2 whitespace-nowrap">
+          <div className="bg-neutral text-neutral-content text-sm rounded py-1 px-2 whitespace-nowrap">
             Create New Group
           </div>
         </div>
