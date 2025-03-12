@@ -79,32 +79,33 @@ function GroupsList({ allGroup, ownGroup }) {
         </div>
       </div>
 
-      <div className="groups-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto ">
-        {groupData.map((group) => (
-          <div
-            key={group._id}
-            className={`bg-white w-80 p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer relative ${
-              selectedGroupId === group._id ? 'bg-blue-50 border-2 border-blue-500' : 'hover:bg-gray-50'
-            } w-96`}
-            onClick={() => handleGroupSelect(group._id)}
-          >
-            <GroupHeader groupData={group} groupName={group.information.name} className="mb-2" />
-            <GroupLocation
-              year={convertDate(group.createdAt).year}
-              city={group.information.city}
-              time={convertDate(group.createdAt).formattedDate}
-              className="text-base-content/70 mb-2"
-            />
-            <GroupDescription description={group.information.bio} className="text-base-content/70 mb-4" />
-            <GroupFooter
-              date={convertDate(group.createdAt).formattedDate}
-              handleBlockGroup={handleBlockGroup}
-              handleSaveGroup={handleSaveGroup}
-              className="flex justify-between items-center text-sm text-base-content/60"
-            />
-          </div>
-        ))}
-      </div>
+      <div className="groups-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+  {groupData.map((group) => (
+    <div
+      key={group._id}
+      className={`bg-white w-full min-w-[250px] max-w-sm p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer relative ${
+        selectedGroupId === group._id ? 'bg-blue-50 border-2 border-blue-500' : 'hover:bg-gray-50'
+      }`}
+      onClick={() => handleGroupSelect(group._id)}
+    >
+      <GroupHeader groupData={group} groupName={group.information.name} className="mb-2" />
+      <GroupLocation
+        year={convertDate(group.createdAt).year}
+        city={group.information.city}
+        time={convertDate(group.createdAt).formattedDate}
+        className="text-base-content/70 mb-2"
+      />
+      <GroupDescription description={group.information.bio} className="text-base-content/70 mb-4" />
+      <GroupFooter
+        date={convertDate(group.createdAt).formattedDate}
+        handleBlockGroup={handleBlockGroup}
+        handleSaveGroup={handleSaveGroup}
+        className="flex justify-between items-center text-sm text-base-content/60"
+      />
+    </div>
+  ))}
+</div>
+
 
       <div className="fixed bottom-6 right-6 z-[1] group">
         <button

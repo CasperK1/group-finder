@@ -25,6 +25,7 @@ function GroupCreateForm() {
 
       const groupData = {
         name: data.name,
+       // yearOfStudy: data.yearOfStudy,
         bio: data.bio,
         city: data.city,
         timePreference: data.timePreference,
@@ -174,16 +175,39 @@ function GroupCreateForm() {
         control={control}
         render={({ field }) => (
           <div>
-            <label className="block text-base-content/70 text-sm mb-1">Major (Optional)</label>
-            <input
+             <label className="block text-base-content/70 text-sm mb-1">Major</label>
+            <select
               {...field}
-              type="text"
-              className="input input-bordered w-full bg-base-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
-              placeholder="Enter major"
-            />
+              className="select select-bordered w-full bg-base-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
+            >
+              <option value="smart-iot-systems">Smart IoT Systems</option>
+              <option value="software-engineering">Software Engineering</option>
+              <option value="health-tech">Health Tech</option>
+              <option value="web-development">Web Development</option>
+              <option value="game-development">Game Development</option>
+            </select>
           </div>
         )}
       />
+
+<Controller
+        name="year-of-study"
+        control={control}
+        render={({ field }) => (
+          <div>
+             <label className="block text-base-content/70 text-sm mb-1">Year of Study</label>
+            <select
+              {...field}
+              className="select select-bordered w-full bg-base-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
+            >
+              <option value="first-year">First Year</option>
+              <option value="second-year">Second Year</option>
+              <option value="third-year">Third Year</option>
+              <option value="senior-level">Senior Level</option>
+            </select>
+          </div>
+        )}
+      />  
 
       <Controller
         name="inviteOnly"
