@@ -22,7 +22,6 @@ const SettingsPage = () => {
     try {
       const response = await apiService.file.uploadProfilePicture({ token: jwt, id: user.userId, formData });
       if (response) {
-        console.log(response);
         dispatch(setProfilePicture(response.photoUrl));
         toast.success('Profile picture updated successfully!');
       } else {
